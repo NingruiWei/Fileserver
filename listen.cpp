@@ -42,7 +42,6 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	int protocol = 0;	
     string username;
 	do {
-		cout << "doing " << endl;
 		// Receive as many additional bytes as we can in one call to recv()
 		// (while not exceeding MAX_MESSAGE_SIZE bytes in total).
 		rval = recv(connectionfd, msg + recvd, 512 - recvd, 0);
