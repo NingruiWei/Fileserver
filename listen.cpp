@@ -9,8 +9,12 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
+#include <bits/stdc++.h>
 
 using namespace std;
+Fileserver main_fileserver;
 
 int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https://github.com/eecs482/bgreeves-socket-example/blob/master/solution/helpers.h
  	struct sockaddr_in addr;
@@ -29,21 +33,43 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 
 	// (1) Receive message from client.
 
-	char msg[256]; // username and password plus null terminator for each and then another plus 1 for the space in between
+	char msg[512]; // username and password plus null terminator for each and then another plus 1 for the space in between
 	memset(msg, 0, sizeof(msg));
 
 	// Call recv() enough times to consume all the data the client sends.
 	size_t recvd = 0;
 	ssize_t rval;
+	int protocol = 0;	
+    string username;
 	do {
 		// Receive as many additional bytes as we can in one call to recv()
 		// (while not exceeding MAX_MESSAGE_SIZE bytes in total).
-		rval = recv(connectionfd, msg + recvd, 256 - recvd, 0);
+		rval = recv(connectionfd, msg + recvd, 512 - recvd, 0);
 		if (rval == -1) {
 			perror("Error reading stream message");
 			return -1;
 		}
 		recvd += rval;
+		string size; 
+        int decrypt;
+		if(protocol == 0){
+            stringstream ss(msg);
+            ss >> username >> size;
+            if(!main_fileserver.username_in_map(username)){
+                cout << "username inputted was not in the map" << endl;
+				close(connectionfd);
+                return -1;
+            }
+            const char* message_size = size.c_str();
+            //decrypt = fs_decrypt(password, 
+			if (send(connectionfd, message_size, strlen(message_size), 0) == -1) {
+				cout << "Send failed" << endl;
+				close(connectionfd);
+				return -1;
+			}
+			protocol++;
+		}
+
 	} while (rval > 0);  // recv() returns 0 when client closes
 
 	// (2) Print out the message
@@ -55,8 +81,10 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	return 0;
 }
 
+
+
 int main(int argc, char** argv){
-    Fileserver main_fileserver;
+    // made main_fileserver globally allocated
     main_fileserver.fill_password_map();
     
     int port = 0;
@@ -67,6 +95,11 @@ int main(int argc, char** argv){
     if (sock == -1) {
         perror("Failed to create socket");
     }
+
+	int enable = 1;
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+    	perror("setsockopt(SO_REUSEADDR) failed");
+	}
 
     struct sockaddr_in addr, cli;
 
@@ -86,19 +119,17 @@ int main(int argc, char** argv){
     if (listen(sock, 30) == -1) { // spec says queue length of 30 is "sufficient"
         perror("Failed to listen on address");
     }
-    
     socklen_t cli_len = sizeof(cli);
 
     while (1) {
-        int connectionfd = accept(sock, (struct sockaddr *)&cli, &cli_len); // second and thir parameters were originally nullptr (0)
+        int connectionfd = accept(sock, (struct sockaddr *)&cli, &cli_len); // (struct sockaddr *)&cli, &cli_len
 		if (connectionfd == -1) {
 			perror("Error accepting connection");
 			return -1;
 		}
-
-		if (handle_connection(connectionfd) == -1) {
-			return -1;
-		}
+		boost::thread t1(boost::ref(handle_connection), connectionfd);
+		
+		printf("main doing stuff");
     }
 
     return 0;

@@ -19,6 +19,7 @@ void Fileserver::fill_password_map(){
             password_map[username] = password;
         }
         else{
+            cout << "insertion to map assertion error";
             assert(false);
         }
 
@@ -26,7 +27,14 @@ void Fileserver::fill_password_map(){
 
 
 } // fill_password_map
+// search_map returns true if query is already an username in the map
+bool Fileserver::username_in_map(string query){
+    return password_map.find(query) != password_map.end();
+}
 
+string Fileserver::query_map(string query){
+    return password_map[query];
+}
 
 
 

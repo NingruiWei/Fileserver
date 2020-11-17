@@ -2,7 +2,8 @@
 #include <cstdlib>
 #include "fs_client.h"
 
-using std::cout;
+
+using namespace std;
 
 int main(int argc, char *argv[])
 
@@ -22,7 +23,9 @@ int main(int argc, char *argv[])
     server = argv[1];
     server_port = atoi(argv[2]);
 
+    cout << "reaching here" << endl;
     fs_clientinit(server, server_port);
+    cout << "clientinit finished" << endl;
     fs_session("user1", "password1", &session, seq++);
     fs_create("user1", "password1", session, seq++, "/dir", 'd');
     fs_create("user1", "password1", session, seq++, "/dir/file", 'f');

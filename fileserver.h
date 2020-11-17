@@ -38,6 +38,8 @@ class Fileserver{
         Fileserver();
         ~Fileserver();
         void fill_password_map();
+        bool username_in_map(string query);
+        string query_map(string query);
 
 
 
