@@ -42,6 +42,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	int protocol = 0;	
     string username;
 	do {
+		cout << "doing " << endl;
 		// Receive as many additional bytes as we can in one call to recv()
 		// (while not exceeding MAX_MESSAGE_SIZE bytes in total).
 		rval = recv(connectionfd, msg + recvd, 512 - recvd, 0);
@@ -62,11 +63,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
             }
             const char* message_size = size.c_str();
             //decrypt = fs_decrypt(password, 
-			if (send(connectionfd, message_size, strlen(message_size), 0) == -1) {
-				cout << "Send failed" << endl;
-				close(connectionfd);
-				return -1;
-			}
+			
 			protocol++;
 		}
 
