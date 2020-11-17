@@ -29,6 +29,7 @@ class Fileserver{
     private:
         vector<File> files;
         unordered_map<string, string> password_map;
+        int session_id;
 
 
     public:

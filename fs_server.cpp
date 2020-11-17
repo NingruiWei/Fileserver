@@ -7,7 +7,9 @@
 using namespace std;
 
 
-Fileserver::Fileserver(){}
+Fileserver::Fileserver(){
+    session_id = 0;
+}
 Fileserver::~Fileserver(){}
 
 void Fileserver::fill_password_map(){
