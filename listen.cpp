@@ -29,7 +29,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 
 	// (1) Receive message from client.
 
-	char msg[(FS_MAXUSERNAME + 1) + (FS_MAXPASSWORD + 1) + 1]; // username and password plus null terminator for each and then another plus 1 for the space in between
+	char msg[256]; // username and password plus null terminator for each and then another plus 1 for the space in between
 	memset(msg, 0, sizeof(msg));
 
 	// Call recv() enough times to consume all the data the client sends.
@@ -38,7 +38,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	do {
 		// Receive as many additional bytes as we can in one call to recv()
 		// (while not exceeding MAX_MESSAGE_SIZE bytes in total).
-		rval = recv(connectionfd, msg + recvd, ((FS_MAXUSERNAME + 1) + (FS_MAXPASSWORD + 1) + 1) - recvd, 0);
+		rval = recv(connectionfd, msg + recvd, 256 - recvd, 0);
 		if (rval == -1) {
 			perror("Error reading stream message");
 			return -1;
@@ -60,7 +60,7 @@ int main(int argc, char** argv){
     main_fileserver.fill_password_map();
     
     int port = 0;
-    if (argc >= 2) { //port specified
+    if (argc == 2) { //port specified
         port = atoi(argv[1]);
     }
     int sock = socket(AF_INET, SOCK_STREAM, 0);
