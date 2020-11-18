@@ -14,7 +14,44 @@
 #include <bits/stdc++.h>
 
 using namespace std;
+
 Fileserver main_fileserver;
+int sequence_num = 0;
+
+bool check_fs(string original){
+	// We must check if sequence number is larger than previous sequence number. The first instance of sequence number is set 
+	// during FS_SESSION call
+	cout << "SEQUENCE_NUM " << sequence_num << endl;
+
+	string name, session, sequence, block, reappended, data, pathname, type;
+	stringstream ss(original);
+	ss >> name >> session >> sequence;
+	if (stoi(sequence) != sequence_num) {
+		cout << "Sequence number does not match" << endl;
+		return false;
+	}
+		if (name == "FS_SESSION") {
+			reappended = name + ' ' + session + ' ' + sequence;
+		}
+		else if (name == "FS_READBLOCK") {
+			ss >> block;
+			reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
+		}
+		else if (name == "FS_WRITEBLOCK") {
+			ss >> block;
+			reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
+		}
+		else if (name == "FS_CREATE") {
+			ss >> pathname >> type;
+			reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + type;
+		}
+		else if (name == "FS_DELETE") {
+			ss >> pathname;
+			reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname;
+		}
+
+	return original == reappended;
+}
 
 int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https://github.com/eecs482/bgreeves-socket-example/blob/master/solution/helpers.h
  	struct sockaddr_in addr;
@@ -32,52 +69,74 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	printf("New connection %d\n", connectionfd);
 
 	// (1) Receive message from client.
-
-	char msg[512]; // username and password plus null terminator for each and then another plus 1 for the space in between
-	memset(msg, 0, sizeof(msg));
-
 	// Call recv() enough times to consume all the data the client sends.
-	size_t recvd = 0;
+	// size_t recvd = 0; might need this again to check how many bytes are left to read
 	ssize_t rval;
-	int protocol = 0;	
-    string username;
+    string username, size, request_message, session, sequence, pathname, block_or_type;
+	char msg[1024];
+	memset(msg, 0, sizeof(msg));
 	do {
 		// Receive as many additional bytes as we can in one call to recv()
 		// (while not exceeding MAX_MESSAGE_SIZE bytes in total).
-		rval = recv(connectionfd, msg + recvd, 512 - recvd, 0);
+		
+		rval = recv(connectionfd, msg, 1024, 0);
 		if (rval == -1) {
 			perror("Error reading stream message");
+			close(connectionfd);
 			return -1;
 		}
-		recvd += rval;
-		string size; 
-        int decrypt;
-		if(protocol == 0){
-            stringstream ss(msg);
-            ss >> username >> size;
-            if(!main_fileserver.username_in_map(username)){
-                cout << "username inputted was not in the map" << endl;
-				close(connectionfd);
-                return -1;
-            }
-            const char* message_size = size.c_str();
-            //decrypt = fs_decrypt(password, 
-			
-			protocol++;
+		// recvd += rval;
+		int decrypt;
+		// use stringstream to create a reappended string for validation of request header
+		stringstream ss(msg);
+		string original = ss.str();
+		string re_appended;
+        ss >> username >> size;
+		re_appended += username + " " + size;
+		if (original != re_appended) {
+			cout << "Invalid format" << endl;
+			close(connectionfd);
+			return -1;
 		}
+
+		if(!main_fileserver.username_in_map(username)){
+			cout << "username inputted was not in the map" << endl;
+			close(connectionfd);
+			return -1;
+		}
+		// const char* message_size = size.c_str();
+		printf("Client %d says '%s'\n", connectionfd, msg);
+		char decrypted_buffer[stoi(size)];
+		decrypt = fs_decrypt(main_fileserver.query_map(username).c_str(), &msg[((username+size).size() + 2)], stoi(size), decrypted_buffer);
+		if(decrypt == -1){
+			cout << "Decryption failed" << endl;
+			close(connectionfd);
+			return -1;
+		}
+		
+		printf("Client %d says '%s'\n", connectionfd, decrypted_buffer);
+		ss.str(decrypted_buffer);
+		original = ss.str();
+		check_fs(original);
+		re_appended = request_message + ' ' + session + ' ' + sequence + ' ' +  pathname + ' ' + block_or_type;
+		if (original != re_appended) {
+			cout << "Invalid format" << endl;
+			close(connectionfd);
+			return -1;
+		}
+
+		
 
 	} while (rval > 0);  // recv() returns 0 when client closes
 
 	// (2) Print out the message
-	printf("Client %d says '%s'\n", connectionfd, msg);
+	// printf("Client %d says '%s'\n", connectionfd, &msg[10]);
 
 	// (4) Close connection
 	close(connectionfd);
 
 	return 0;
 }
-
-
 
 int main(int argc, char** argv){
     // made main_fileserver globally allocated
@@ -109,7 +168,7 @@ int main(int argc, char** argv){
     }
 
     // retrieve port number by reorganizing endian-ness and print
-    port = get_port_number(sock);
+    port = get_port_number(sock); 
 	cout << "\n@@@ port " << port << endl;
     
     if (listen(sock, 30) == -1) { // spec says queue length of 30 is "sufficient"
@@ -123,9 +182,11 @@ int main(int argc, char** argv){
 			perror("Error accepting connection");
 			return -1;
 		}
+
 		boost::thread t1(boost::ref(handle_connection), connectionfd);
 		
-		printf("main doing stuff");
+		printf("main doing stuff\n");
+		
     }
 
     return 0;
