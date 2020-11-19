@@ -177,11 +177,6 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		appender = to_string(msg_size) + '\0' + appender;
 		cout << "APPENDER " << appender << endl;
 
-
-		return_message = string(return_encrypt);
-		return_message = to_string(return_message.size() + 2) + "\0" + return_message + "\0" + "]";
-
-		cout << return_message << endl;
 		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_READBLOCK"){
