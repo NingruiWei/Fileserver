@@ -80,8 +80,8 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	char msg[1];
 	string clear_text, encrypted;
 	bool begin_encrypt = false;
+	memset(msg, 0, sizeof(msg));
 	do {
-		memset(msg, 0, sizeof(msg));
 
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
 
