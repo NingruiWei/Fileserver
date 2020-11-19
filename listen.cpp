@@ -9,8 +9,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
-#include <boost/thread.hpp>
-#include <boost/chrono.hpp>
+#include <thread>
+#include <mutex>
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -206,7 +206,7 @@ int main(int argc, char** argv){
 			return -1;
 		}
 
-		boost::thread t1(boost::ref(handle_connection), connectionfd);
+		t1(handle_connection()), connectionfd);
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();
