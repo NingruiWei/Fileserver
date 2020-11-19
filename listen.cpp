@@ -165,11 +165,11 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		size_t msg_size = 0;
 		bool null_flag = false;
 		for (size_t i = 0; i < (return_message.size()*2) + 64; i++) {
+			appender += return_encrypt[i];
+			msg_size += 1;
 			if (null_flag) {
 				break;
 			}
-			appender += return_encrypt[i];
-			msg_size += 1;
 			if (return_encrypt[i] == '\0') {
 				null_flag = true;
 			}
