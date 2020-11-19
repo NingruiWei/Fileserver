@@ -118,9 +118,9 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	ss >> username >> size;
 
 	char decrypted_msg[stoi(size) + 1];
-	// cout_lock.lock();
-	// cout << main_fileserver.query_map(username) << encrypted << " " << size << " " << endl;
-	// cout_lock.unlock();
+	cout_lock.lock();
+	cout << main_fileserver.query_map(username) << encrypted << " " << size << " " << endl;
+	cout_lock.unlock();
 	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted.c_str(), stoi(size), decrypted_msg);
 
 	if (decryption == -1) {
@@ -174,7 +174,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 				null_flag = true;
 			}
 		}
-		appender = to_string(msg_size) + "\0" + appender;
+		appender = to_string(msg_size) + '\0' + appender;
 		cout << "APPENDER " << appender << endl;
 
 
@@ -182,6 +182,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		return_message = to_string(return_message.size() + 2) + "\0" + return_message + "\0" + "]";
 
 		cout << return_message << endl;
+		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_READBLOCK"){
 		main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type);
