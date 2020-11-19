@@ -16,8 +16,8 @@
 using namespace std;
 
 Fileserver main_fileserver;
-boost::mutex seq_lock;
-extern boost::mutex cout_lock;
+mutex seq_lock;
+extern mutex cout_lock;
 int sequence_num = 0;
 
 bool check_fs(string original){
@@ -136,6 +136,14 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		close(connectionfd);
 		return -1;
 	}
+
+	if(!check_fs(string(decrypted_msg))){
+		cout_lock.lock();
+		cout << "Invalid message received" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return -1;
+	}
 	
 	string request_message, session, sequence, pathname, block_or_type;
 	ss.str(decrypted_msg);
@@ -206,7 +214,7 @@ int main(int argc, char** argv){
 			return -1;
 		}
 
-		t1(handle_connection()), connectionfd);
+		thread t1(handle_connection, connectionfd);
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();

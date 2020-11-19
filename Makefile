@@ -1,4 +1,4 @@
-CC=g++ -g -Wall
+CC=g++ -g -Wall -std=c++17
 
 # List of source files for your file server
 FS_SOURCES= listen.cpp fs_server.cpp
@@ -11,7 +11,7 @@ all: fs app
 # Compile the file server and tag this compilation
 fs: ${FS_OBJS} libfs_server.o
 	./autotag.sh
-	${CC} -o $@ $^ -lboost_thread -lboost_system -pthread -ldl
+	${CC} -o $@ $^ -pthread -ldl
 
 # Compile a client program
 app: spec_test.cpp libfs_client.o
