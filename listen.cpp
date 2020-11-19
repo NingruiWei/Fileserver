@@ -24,9 +24,6 @@ int sequence_num = 0;
 bool check_fs(string original){
 	// We must check if sequence number is larger than previous sequence number. The first instance of sequence number is set 
 	// during FS_SESSION call
-	cout_lock.lock();
-	cout << "SEQUENCE_NUM " << sequence_num << endl;
-	cout_lock.unlock();
 
 	string name, session, sequence, block, reappended, data, pathname, type;
 	stringstream ss(original);
@@ -146,6 +143,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	ss.str(decrypted_msg);
 	ss >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
+	cout << request_message << " " << session << " " << sequence << " " << pathname << " " << block_or_type << endl;
 	
 	string return_message;
 	cout << "request message is " << request_message << endl;
