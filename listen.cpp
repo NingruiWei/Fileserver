@@ -85,13 +85,8 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	bool begin_encrypt = false;
 	do {
 		memset(msg, 0, sizeof(msg));
-		cout_lock.lock();
-		cout << "adasdsdsdsdsas" << endl;
-		cout_lock.unlock();
+
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
-		cout_lock.lock();
-		cout << "aYYYYYYYYYYYYY" << endl;
-		cout_lock.unlock();
 
 		if(!begin_encrypt){
 			clear_text += msg;
@@ -250,11 +245,8 @@ int main(int argc, char** argv){
 			return -1;
 		}
 
-		cout_lock.lock();
-		cout << "DEBUGGING" << endl;
-		cout_lock.unlock();
-
 		thread t1(handle_connection, connectionfd);
+		t1.detach();
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();
