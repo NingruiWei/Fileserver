@@ -168,6 +168,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 				cout << "we got em" << endl;
 			}
 		}
+		cout << appender;
 
 
 		return_message = string(return_encrypt);
