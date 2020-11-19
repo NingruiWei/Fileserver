@@ -109,18 +109,18 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 
 	} while (rval > 0);  // recv() returns 0 when client closes
 
-	cout_lock.lock();
-	cout << clear_text << " " << encrypted << endl;
-	cout_lock.unlock();
+	// cout_lock.lock();
+	// cout << clear_text << " " << encrypted << endl;
+	// cout_lock.unlock();
 
 	stringstream ss(clear_text);
 	string username, size;
 	ss >> username >> size;
 
 	char decrypted_msg[stoi(size) + 1];
-	cout_lock.lock();
-	cout << main_fileserver.query_map(username) << " " << encrypted << " " << size << " " << endl;
-	cout_lock.unlock();
+	// cout_lock.lock();
+	// cout << main_fileserver.query_map(username) << encrypted << " " << size << " " << endl;
+	// cout_lock.unlock();
 	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted.c_str(), stoi(size), decrypted_msg);
 
 	if (decryption == -1) {
@@ -147,7 +147,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	cout << request_message << " " << session << " " << sequence << " " << pathname << " " << block_or_type << endl;
 	
 	string return_message;
-	cout << "request message is " << request_message << endl;
+	// cout << "request message is " << request_message << endl;
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
@@ -160,6 +160,16 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 			close(connectionfd);
 			return -1;
 		}
+
+		string appender;
+		for (size_t i = 0; i < 33; i++) {
+			appender += return_message[i];
+			if (return_message[i] == '\0') {
+				cout << "we got em" << endl;
+			}
+		}
+
+
 		return_message = string(return_encrypt);
 		return_message = to_string(return_message.size() + 2) + "\0" + return_message + "\0" + "]";
 		cout << return_message << endl;
