@@ -117,7 +117,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	string username, size;
 	ss >> username >> size;
 
-	char decrypted_msg[stoi(size)];
+	char *decrypted_msg;
 	cout_lock.lock();
 	cout << main_fileserver.query_map(username) << " " << encrypted << " " << size << " " << endl;
 	cout_lock.unlock();
