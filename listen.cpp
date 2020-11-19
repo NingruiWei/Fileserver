@@ -82,7 +82,8 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	bool begin_encrypt = false;
 	do {
 		memset(msg, 0, sizeof(msg));
-		rval = recv(connectionfd, msg, 1, 0);
+		cout << "cheese" << endl;
+		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
 
 		if(!begin_encrypt){
 			clear_text += msg;
