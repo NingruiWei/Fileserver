@@ -175,7 +175,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 			}
 		}
 		appender = to_string(msg_size) + "\0" + appender;
-		send(connectionfd, appender.c_str(), appender.size(), 0);
+		//send(connectionfd, appender.c_str(), appender.size(), 0);
 		
 
 	}
