@@ -162,7 +162,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		}
 
 		string appender;
-		size_t msg_size = 0;
+		int msg_size = 0;
 		bool null_flag = false;
 		for (size_t i = 0; i < (return_message.size()*2) + 64; i++) {
 			appender += return_encrypt[i];
@@ -174,7 +174,8 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 				null_flag = true;
 			}
 		}
-		cout << "APPENDER " << appender << msg_size << endl;
+		appender = to_string(msg_size) + "\0" + appender;
+		cout << "APPENDER " << appender << endl;
 
 
 		return_message = string(return_encrypt);
