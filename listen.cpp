@@ -107,7 +107,8 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		}
 
 		//This is currently a PLACEHOLDER calculation, we need to revisit this to get a more accurate estimate of what the maximum message size can be
-		if((clear_text + encrypted).size() > FS_MAXUSERNAME + FS_MAXPATHNAME + FS_BLOCKSIZE + 18){ //message exceeds maximum valid size a message may be, therefore it must be invalid
+		// - Added the "+2" to first half of check because encrypted is techinically missing the null character and ending bracket
+		if((clear_text + encrypted).size() + 2 > FS_MAXUSERNAME + FS_MAXPATHNAME + FS_BLOCKSIZE + 18){ //message exceeds maximum valid size a message may be, therefore it must be invalid
 			cout_lock.lock();
 			perror("Message is of an invalid size");
 			cout_lock.unlock();
