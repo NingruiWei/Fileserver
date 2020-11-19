@@ -148,7 +148,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	
 	
 	string return_message;
-	cout << request_message << endl;
+	cout << "request message is " << request_message << endl;
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
