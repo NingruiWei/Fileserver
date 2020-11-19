@@ -141,9 +141,8 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	
 	
 	string request_message, session, sequence, pathname, block_or_type;
-	cout << decrypted_msg << endl;
-	ss.str(decrypted_msg);
-	ss >> request_message >> session >> sequence >> pathname >> block_or_type;
+	stringstream ss2(decrypted_msg);
+	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
 	cout << request_message << " " << session << " " << sequence << " " << pathname << " " << block_or_type << endl;
 	
