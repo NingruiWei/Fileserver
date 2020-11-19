@@ -161,7 +161,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 			return -1;
 		}
 		return_message = string(return_encrypt);
-		return_message = to_string(return_message.size()) + " \0" + return_message + "\0]";
+		return_message = to_string(return_message.size()) + " \0" + return_message + "\0" + "]";
 		cout << return_message << endl;
 	}
 	else if(request_message == "FS_READBLOCK"){
