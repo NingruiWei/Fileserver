@@ -151,7 +151,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
-		char *return_encrypt;
+		char return_encrypt[return_message.size()*2 + 64];
 		int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), return_message.c_str(), return_message.size(), return_encrypt);
 		if(encryption == -1){
 			cout_lock.lock();
