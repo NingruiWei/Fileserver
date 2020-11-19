@@ -78,21 +78,30 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	// size_t recvd = 0; might need this again to check how many bytes are left to read
 	ssize_t rval;
 	char msg[1];
+	memset(msg, 0, sizeof(msg));
 	string clear_text, encrypted;
+	string username;
+	string size_encrypted;
 	bool begin_encrypt = false;
 	do {
-		memset(msg, 0, sizeof(msg));
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
 
 		if(!begin_encrypt){
 			clear_text += msg;
 			if(msg[0] == '\0'){
 				begin_encrypt = true;
+				stringstream ss(clear_text);
+				ss >> username >> size_encrypted;
+				if (!main_fileserver.username_in_map(username)) {
+					cout << "no matching username" << endl;
+					close(connectionfd);
+					return -1;
+				}
 			}
 		}
 		else{
 			if(msg[0] == '\0'){
-				encrypted += '\0';
+				break;
 			}
 			encrypted += msg;
 		}
@@ -108,19 +117,23 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 
 	} while (rval > 0);  // recv() returns 0 when client closes
 
-	// cout_lock.lock();
-	// cout << clear_text << " " << encrypted << endl;
-	// cout_lock.unlock();
+	char decrypted_msg[stoi(size_encrypted)];
 
-	stringstream ss(clear_text);
-	string username, size;
-	ss >> username >> size;
 
-	char decrypted_msg[stoi(size) + 1];
-	cout_lock.lock();
-	cout << main_fileserver.query_map(username) << encrypted << " " << size << " " << endl;
-	cout_lock.unlock();
-	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted.c_str(), stoi(size), decrypted_msg);
+	// original encrypted string does not contain <NULL> in the right location, so
+	// this is to recreate what the c_string should be when passed into fs_decrypt()
+	char encrypted_cstr[stoi(size_encrypted)];
+	for (size_t i = 0; i < encrypted.size(); i++) {
+		encrypted_cstr[i] = encrypted[i];
+		// cout_lock.lock();
+		// cout << encrypted_cstr[i];
+		// cout_lock.unlock();
+	}
+	encrypted_cstr[stoi(size_encrypted) - 2] = '\0';
+	encrypted_cstr[stoi(size_encrypted) - 1] = ']';
+	//cout << endl;
+
+	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted_cstr, stoi(size_encrypted), decrypted_msg);
 
 	if (decryption == -1) {
 		cout_lock.lock();
@@ -138,12 +151,9 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		return -1;
 	}
 	
-	
 	string request_message, session, sequence, pathname, block_or_type;
 	stringstream ss2(decrypted_msg);
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
-	
-	cout << request_message << " " << session << " " << sequence << " " << pathname << " " << block_or_type << endl;
 	
 	string return_message;
 	// cout << "request message is " << request_message << endl;
