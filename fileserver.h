@@ -23,13 +23,16 @@ struct File{
     bool is_full(){
         return available_blocks.empty();
     }
+
 };
 
 class Fileserver{
     private:
         vector<File> files;
+        vector<size_t> session_map;
         unordered_map<string, string> password_map;
-        int session_id;
+        
+        
 
 
     public:
@@ -37,6 +40,11 @@ class Fileserver{
 
         Fileserver();
         ~Fileserver();
+        int handle_fs_session(string session, string sequence);
+        void handle_fs_readblock(string session, string sequence, string pathname, string block_or_type);
+        void handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type);
+        void handle_fs_create(string session, string sequence, string pathname);
+        void handle_fs_delete(string session, string sequence, string pathname);
         void fill_password_map();
         bool username_in_map(string query);
         string query_map(string query);

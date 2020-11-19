@@ -4,12 +4,11 @@
 #include <unordered_map>
 #include <string>
 #include <cassert>
+#include <mutex>
 using namespace std;
 
 
-Fileserver::Fileserver(){
-    session_id = 0;
-}
+Fileserver::Fileserver(){}
 Fileserver::~Fileserver(){}
 
 void Fileserver::fill_password_map(){
@@ -27,6 +26,15 @@ void Fileserver::fill_password_map(){
 
 
 } // fill_password_map
+
+int Fileserver::handle_fs_session(string session, string sequence){
+    session_map.push_back(stoi(sequence));
+    return session_map.size() - 1;
+}
+void Fileserver::handle_fs_readblock(string session, string sequence, string pathname, string block_or_type){}
+void Fileserver::handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type){}
+void Fileserver::handle_fs_delete(string session, string sequence, string pathname){}
+void Fileserver::handle_fs_create(string session, string sequence, string pathname){}
 // search_map returns true if query is already an username in the map
 bool Fileserver::username_in_map(string query){
     return password_map.find(query) != password_map.end();

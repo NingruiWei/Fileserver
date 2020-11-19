@@ -20,6 +20,7 @@ mutex seq_lock;
 extern mutex cout_lock;
 int sequence_num = 0;
 
+
 bool check_fs(string original){
 	// We must check if sequence number is larger than previous sequence number. The first instance of sequence number is set 
 	// during FS_SESSION call
@@ -75,7 +76,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	printf("New connection %d\n", connectionfd);
 	cout_lock.unlock();
 
-	// (1) Receive message from client.
+	// Receive message from client.
 	// Call recv() enough times to consume all the data the client sends.
 	// size_t recvd = 0; might need this again to check how many bytes are left to read
 	ssize_t rval;
@@ -84,10 +85,13 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	bool begin_encrypt = false;
 	do {
 		memset(msg, 0, sizeof(msg));
-		// Receive as many additional bytes as we can in one call to recv()
-		// (while not exceeding MAX_MESSAGE_SIZE bytes in total).
-		
+		cout_lock.lock();
+		cout << "adasdsdsdsdsas" << endl;
+		cout_lock.unlock();
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
+		cout_lock.lock();
+		cout << "aYYYYYYYYYYYYY" << endl;
+		cout_lock.unlock();
 
 		if(!begin_encrypt){
 			clear_text += msg;
@@ -102,6 +106,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 			encrypted += msg;
 		}
 
+		//This is currently a PLACEHOLDER calculation, we need to revisit this to get a more accurate estimate of what the maximum message size can be
 		if((clear_text + encrypted).size() > FS_MAXUSERNAME + FS_MAXPATHNAME + FS_BLOCKSIZE + 18){ //message exceeds maximum valid size a message may be, therefore it must be invalid
 			cout_lock.lock();
 			perror("Message is of an invalid size");
@@ -111,9 +116,6 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 		}
 
 	} while (rval > 0);  // recv() returns 0 when client closes
-
-	// (2) Print out the message
-	// printf("Client %d says '%s'\n", connectionfd, &msg[10]);
 
 	cout_lock.lock();
 	cout << clear_text << " " << encrypted << endl;
@@ -148,14 +150,48 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	string request_message, session, sequence, pathname, block_or_type;
 	ss.str(decrypted_msg);
 	ss >> request_message >> session >> sequence >> pathname >> block_or_type;
+	
+	
+	string return_message;
+	if(request_message == "FS_SESSION"){
+		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
+		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
+		char *return_encrypt;
+		int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), return_message.c_str(), return_message.size(), return_encrypt);
+		if(encryption == -1){
+			cout_lock.lock();
+			cout << "Encryption failed" << endl;
+			cout_lock.unlock();
+			close(connectionfd);
+			return -1;
+		}
+		return_message = string(return_encrypt);
+		return_message = to_string(return_message.size()) + "\0" + return_message;
+		cout << return_message << endl;
+	}
+	else if(request_message == "FS_READBLOCK"){
+		main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type);
 
-	cout_lock.lock();
-	cout << request_message << " " << session << " " << sequence << " " << pathname << " " << block_or_type << endl;
-	cout_lock.unlock();
+	}
+	else if(request_message == "FS_WRITEBLOCK"){
+		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type);
+	}
+	else if(request_message == "FS_CREATE"){
+		main_fileserver.handle_fs_create(session, sequence, pathname);
+	}
+	else if(request_message == "FS_DELETE"){
+		main_fileserver.handle_fs_delete(session, sequence, pathname);
+	}
+	else{
+		cout_lock.lock();
+		cout << "Client request comman not recognized" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return -1;
+	}
 
-	// (4) Close connection
+	//Close connection and return successfully
 	close(connectionfd);
-
 	return 0;
 }
 
@@ -213,6 +249,10 @@ int main(int argc, char** argv){
 			cout_lock.unlock();
 			return -1;
 		}
+
+		cout_lock.lock();
+		cout << "DEBUGGING" << endl;
+		cout_lock.unlock();
 
 		thread t1(handle_connection, connectionfd);
 		cout_lock.lock();
