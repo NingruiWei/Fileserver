@@ -123,10 +123,6 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	cout_lock.unlock();
 	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted.c_str(), stoi(size), decrypted_msg);
 
-	for(int i = 0; i < stoi(size); i++){
-		cout << decrypted_msg[i];
-	}
-
 	if (decryption == -1) {
 		cout_lock.lock();
 		cout << "Decryption failed" << endl;
