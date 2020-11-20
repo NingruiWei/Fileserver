@@ -28,31 +28,44 @@ bool check_fs(string original){
 	string name, session, sequence, block, reappended, data, pathname, type;
 	stringstream ss(original);
 	ss >> name >> session >> sequence;
-	if (stoi(sequence) != sequence_num) {
+
+	cout_lock.lock();
+	cout << "decrypted message " << name << " " << session << " " << sequence << endl;
+	cout_lock.unlock();
+
+	if(name != "FS_SESSION" && stoi(session) > main_fileserver.valid_session_range()){
 		cout_lock.lock();
-		cout << "Sequence number does not match" << endl;
+		cout << "Session number is invalid" << endl;
 		cout_lock.unlock();
 		return false;
 	}
-		if (name == "FS_SESSION") {
-			reappended = name + ' ' + session + ' ' + sequence;
-		}
-		else if (name == "FS_READBLOCK") {
-			ss >> block;
-			reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
-		}
-		else if (name == "FS_WRITEBLOCK") {
-			ss >> block;
-			reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
-		}
-		else if (name == "FS_CREATE") {
-			ss >> pathname >> type;
-			reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + type;
-		}
-		else if (name == "FS_DELETE") {
-			ss >> pathname;
-			reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname;
-		}
+
+	if (name != "FS_SESSION" && stoi(sequence) <= main_fileserver.query_session_map(stoi(session))) {
+		cout_lock.lock();
+		cout << "Sequence number is invalid" << endl;
+		cout_lock.unlock();
+		return false;
+	}
+
+	if (name == "FS_SESSION") {
+		reappended = name + ' ' + session + ' ' + sequence;
+	}
+	else if (name == "FS_READBLOCK") {
+		ss >> block;
+		reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
+	}
+	else if (name == "FS_WRITEBLOCK") {
+		ss >> block;
+		reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
+	}
+	else if (name == "FS_CREATE") {
+		ss >> pathname >> type;
+		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + type;
+	}
+	else if (name == "FS_DELETE") {
+		ss >> pathname;
+		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname;
+	}
 
 	return original == reappended;
 }
@@ -66,7 +79,38 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	}
 	// Use ntohs to convert from network byte order to host byte order.
 	return ntohs(addr.sin_port);
- }
+}
+
+string encrypt_return_message(string return_message, int* error_check, const string username){
+	char return_encrypt[(return_message.size()*2) + 64];
+	int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), return_message.c_str(), return_message.size(), return_encrypt);
+
+	if(encryption == -1){
+		cout_lock.lock();
+		cout << "Encryption failed" << endl;
+		cout_lock.unlock();
+		*error_check = -1;
+		//close(connectionfd);
+		return "";
+	}
+
+	string appender;
+	int msg_size = 0;
+	bool null_flag = false;
+	for (size_t i = 0; i < (return_message.size()*2) + 64; i++) {
+		appender += return_encrypt[i];
+		msg_size += 1;
+		if (null_flag) {
+			break;
+		}
+		if (return_encrypt[i] == '\0') {
+			null_flag = true;
+		}
+	}
+	appender = to_string(msg_size) + '\0' + appender; // null character doesn't actually append
+
+	return appender;
+}
 
  int handle_connection(int connectionfd) {
 	cout_lock.lock();
@@ -119,8 +163,6 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	} while (rval > 0);  // recv() returns 0 when client closes
 
 	char decrypted_msg[stoi(size_encrypted)];
-
-
 	// original encrypted string does not contain <NULL> in the right location, so
 	// this is to recreate what the c_string should be when passed into fs_decrypt()
 	char encrypted_cstr[stoi(size_encrypted)];
@@ -157,50 +199,80 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
 	string return_message;
-	// cout << "request message is " << request_message << endl;
+	cout << "request message is " << request_message << endl;
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
-		char return_encrypt[(return_message.size()*2) + 64];
-		int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), return_message.c_str(), return_message.size(), return_encrypt);
-		if(encryption == -1){
-			cout_lock.lock();
-			cout << "Encryption failed" << endl;
-			cout_lock.unlock();
+		int fail_check = 0;
+		string appender = encrypt_return_message(return_message, &fail_check, username);
+
+		if(fail_check == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		string appender;
-		int msg_size = 0;
-		bool null_flag = false;
-		for (size_t i = 0; i < (return_message.size()*2) + 64; i++) {
-			appender += return_encrypt[i];
-			msg_size += 1;
-			if (null_flag) {
-				break;
-			}
-			if (return_encrypt[i] == '\0') {
-				null_flag = true;
-			}
-		}
-		appender = to_string(msg_size) + '\0' + appender;
-		cout << "APPENDER " << appender << endl;
-
-		send(connectionfd, appender.c_str(), appender.size(), 0);
+		send(connectionfd, appender.c_str(), appender.size(), 0); // appender.c_str() does not contain the <NULL> before the last closing bracket
 	}
 	else if(request_message == "FS_READBLOCK"){
-		main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type);
+		string read_data = main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type);
+		return_message = session + ' ' + sequence + '\0' + read_data;
+		int fail_check = 0;
+		string appender = encrypt_return_message(return_message, &fail_check, username);
+
+		if(fail_check == -1){
+			close(connectionfd);
+			return -1;
+		}
+
+		send(connectionfd, appender.c_str(), appender.size(), 0);
 
 	}
 	else if(request_message == "FS_WRITEBLOCK"){
+
+		//READ IN DATA FROM recv by looping recv again
+
 		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type);
+		return_message = session + ' ' + sequence + '\0';
+
+		int fail_check = 0;
+		string appender = encrypt_return_message(return_message, &fail_check, username);
+
+		if(fail_check == -1){
+			close(connectionfd);
+			return -1;
+		}
+
+		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_CREATE"){
 		main_fileserver.handle_fs_create(session, sequence, pathname);
+
+		return_message = session + ' ' + sequence + '\0';
+
+		int fail_check = 0;
+		string appender = encrypt_return_message(return_message, &fail_check, username);
+
+		if(fail_check == -1){
+			close(connectionfd);
+			return -1;
+		}
+
+		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_DELETE"){
 		main_fileserver.handle_fs_delete(session, sequence, pathname);
+
+		return_message = session + ' ' + sequence + '\0';
+
+		int fail_check = 0;
+		string appender = encrypt_return_message(return_message, &fail_check, username);
+
+		if(fail_check == -1){
+			close(connectionfd);
+			return -1;
+		}
+
+		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else{
 		cout_lock.lock();

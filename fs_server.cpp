@@ -31,10 +31,17 @@ int Fileserver::handle_fs_session(string session, string sequence){
     session_map.push_back(stoi(sequence));
     return session_map.size() - 1;
 }
-void Fileserver::handle_fs_readblock(string session, string sequence, string pathname, string block_or_type){}
+
+string Fileserver::handle_fs_readblock(string session, string sequence, string pathname, string block_or_type){
+    return "data";
+}
+
 void Fileserver::handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type){}
+
 void Fileserver::handle_fs_delete(string session, string sequence, string pathname){}
+
 void Fileserver::handle_fs_create(string session, string sequence, string pathname){}
+
 // search_map returns true if query is already an username in the map
 bool Fileserver::username_in_map(string query){
     return password_map.find(query) != password_map.end();
@@ -42,6 +49,14 @@ bool Fileserver::username_in_map(string query){
 
 string Fileserver::query_map(string query){
     return password_map[query];
+}
+
+int Fileserver::query_session_map(int session){
+    return session_map[session];
+}
+
+int Fileserver::valid_session_range(){
+    return session_map.size() - 1;
 }
 
 

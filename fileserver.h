@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 #include <queue>
+#include <string>
 using namespace std;
 struct File{
     priority_queue<int> available_blocks;
@@ -41,13 +42,15 @@ class Fileserver{
         Fileserver();
         ~Fileserver();
         int handle_fs_session(string session, string sequence);
-        void handle_fs_readblock(string session, string sequence, string pathname, string block_or_type);
+        string handle_fs_readblock(string session, string sequence, string pathname, string block_or_type);
         void handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type);
         void handle_fs_create(string session, string sequence, string pathname);
         void handle_fs_delete(string session, string sequence, string pathname);
         void fill_password_map();
         bool username_in_map(string query);
         string query_map(string query);
+        int query_session_map(int session);
+        int valid_session_range();
 
 
 
