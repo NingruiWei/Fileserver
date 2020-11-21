@@ -78,6 +78,7 @@ void Fileserver::init_fs() {
 // - entries is the table of dir_entries associated with the corresponding block value at i for dir_inode
 // - whenever we create a file or directory, we need to update size and blocks in the root inode
 void Fileserver::read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i) {
+    
     disk_readblock(dir_inode->blocks[i], &entries);
 }
 

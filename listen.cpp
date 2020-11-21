@@ -235,6 +235,20 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 	else if(request_message == "FS_WRITEBLOCK"){
 
 		//READ IN DATA FROM recv by looping recv again
+		ssize_t rval;
+		char data[stoi(size_encrypted) + 1];
+		do {
+			rval = recv(connectionfd, data, stoi(size_encrypted) + 1, 0);
+		} while (rval > 0);
+
+		// for (size_t i = 0; i < (unsigned)(stoi(size_encrypted) + 1); i++) {
+		// 	cout_lock.lock();
+		// 	cout << data[i];
+		// 	cout_lock.unlock();
+		// }
+		// cout_lock.lock();
+		// cout << endl;
+		// cout_lock.unlock();
 
 		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type);
 		return_message = session + ' ' + sequence + '\0';
