@@ -27,8 +27,11 @@ void Fileserver::fill_password_map(){
 
 } // fill_password_map
 
-int Fileserver::handle_fs_session(string session, string sequence){
-    session_map.push_back(stoi(sequence));
+int Fileserver::handle_fs_session(string session, string sequence, string username){
+    session_map_entry temp;
+    temp.sequence_num = stoi(sequence); // do we have to dynamically allocate and just store as a pointer? HMMM
+    temp.username = username;
+    session_map.push_back(temp);
     return session_map.size() - 1;
 }
 
@@ -40,7 +43,12 @@ void Fileserver::handle_fs_writeblock(string session, string sequence, string pa
 
 void Fileserver::handle_fs_delete(string session, string sequence, string pathname){}
 
-void Fileserver::handle_fs_create(string session, string sequence, string pathname, string type){}
+void Fileserver::handle_fs_create(string session, string sequence, string pathname, string type){
+    fs_inode* temp_node = new fs_inode;
+    temp_node->type = type[0];
+    temp_node->owner = session_map[stoi(session)].username;
+
+}
 
 // search_map returns true if query is already an username in the map
 bool Fileserver::username_in_map(string query){

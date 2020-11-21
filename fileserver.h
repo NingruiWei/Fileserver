@@ -11,6 +11,11 @@
 #include <queue>
 #include <string>
 using namespace std;
+
+struct session_map_entry{
+    size_t sequence_num;
+    string username;
+};
 struct File{
     priority_queue<int> available_blocks;
     vector<string> blocks;
@@ -31,7 +36,7 @@ struct File{
 class Fileserver{
     private:
         vector<File> files;
-        vector<size_t> session_map;
+        vector<session_map_entry> session_map;
         unordered_map<string, string> password_map;
         fs_inode curr_inode;
         fs_inode root_inode;
@@ -39,7 +44,7 @@ class Fileserver{
     public:
         Fileserver();
         ~Fileserver();
-        int handle_fs_session(string session, string sequence);
+        int handle_fs_session(string session, string sequence, string username);
         string handle_fs_readblock(string session, string sequence, string pathname, string block_or_type);
         void handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type);
         void handle_fs_create(string session, string sequence, string pathname, string type);

@@ -206,7 +206,7 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 	cout << "request message is " << request_message << endl;
 	cout_lock.unlock();
 	if(request_message == "FS_SESSION"){
-		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
+		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
 		int fail_check = 0;
 		string appender = encrypt_return_message(return_message, &fail_check, username);
