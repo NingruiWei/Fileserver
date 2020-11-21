@@ -29,9 +29,9 @@ bool check_fs(string original){
 	stringstream ss(original);
 	ss >> name >> session >> sequence;
 
-	cout_lock.lock();
-	cout << "decrypted message " << name << " " << session << " " << sequence << endl;
-	cout_lock.unlock();
+	// cout_lock.lock();
+	// cout << "decrypted message " << name << " " << session << " " << sequence << endl;
+	// cout_lock.unlock();
 
 	if(name != "FS_SESSION" && stoi(session) > main_fileserver.valid_session_range()){
 		cout_lock.lock();
@@ -112,6 +112,35 @@ string encrypt_return_message(string return_message, int* error_check, const str
 	return appender;
 }
 
+void decrypt_message(char *decrypted_msg, string &encrypted, string &username, int size_encrypted, int connectionfd) {
+	// original encrypted string does not contain <NULL> in the right location, so
+	// this is to recreate what the c_string should be when passed into fs_decrypt()
+	char encrypted_cstr[size_encrypted];
+	for (size_t i = 0; i < encrypted.size(); i++) {
+		encrypted_cstr[i] = encrypted[i];
+	}
+	encrypted_cstr[size_encrypted - 1] = ']';
+	//cout << encrypted_cstr[size_encrypted - 1] << endl;
+
+	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted_cstr, size_encrypted, decrypted_msg);
+
+	if (decryption == -1) {
+		cout_lock.lock();
+		cout << "Decryption failed" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return;
+	}
+
+	if(!check_fs(string(decrypted_msg))){
+		cout_lock.lock();
+		cout << "Invalid message received" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return;
+	}
+}
+
  int handle_connection(int connectionfd) {
 	cout_lock.lock();
 	printf("New connection %d\n", connectionfd);
@@ -131,7 +160,7 @@ string encrypt_return_message(string return_message, int* error_check, const str
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
 
 		if(!begin_encrypt){
-			clear_text += msg;
+			clear_text += string(msg, 1);
 			if(msg[0] == '\0'){
 				begin_encrypt = true;
 				stringstream ss(clear_text);
@@ -144,10 +173,11 @@ string encrypt_return_message(string return_message, int* error_check, const str
 			}
 		}
 		else{
+			encrypted += string(msg, 1);
+			// cout << string(msg, 1);
 			if(msg[0] == '\0'){
 				break;
 			}
-			encrypted += msg;
 		}
 
 		//This is currently a PLACEHOLDER calculation, we need to revisit this to get a more accurate estimate of what the maximum message size can be
@@ -161,45 +191,20 @@ string encrypt_return_message(string return_message, int* error_check, const str
 		}
 
 	} while (rval > 0);  // recv() returns 0 when client closes
-
-	char decrypted_msg[stoi(size_encrypted)];
-	// original encrypted string does not contain <NULL> in the right location, so
-	// this is to recreate what the c_string should be when passed into fs_decrypt()
-	char encrypted_cstr[stoi(size_encrypted)];
-	for (size_t i = 0; i < encrypted.size(); i++) {
-		encrypted_cstr[i] = encrypted[i];
-		// cout_lock.lock();
-		// cout << encrypted_cstr[i];
-		// cout_lock.unlock();
-	}
-	encrypted_cstr[stoi(size_encrypted) - 2] = '\0';
-	encrypted_cstr[stoi(size_encrypted) - 1] = ']';
-	//cout << endl;
-
-	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted_cstr, stoi(size_encrypted), decrypted_msg);
-
-	if (decryption == -1) {
-		cout_lock.lock();
-		cout << "Decryption failed" << endl;
-		cout_lock.unlock();
-		close(connectionfd);
-		return -1;
-	}
-
-	if(!check_fs(string(decrypted_msg))){
-		cout_lock.lock();
-		cout << "Invalid message received" << endl;
-		cout_lock.unlock();
-		close(connectionfd);
-		return -1;
-	}
 	
+	// decrypt the message and store in char[]
+	char decrypted_msg[stoi(size_encrypted)];
+	decrypt_message(decrypted_msg, encrypted, username, stoi(size_encrypted), connectionfd);
+
 	string request_message, session, sequence, pathname, block_or_type;
 	stringstream ss2(decrypted_msg);
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
 	string return_message;
+	cout_lock.lock();
+	cout << string(decrypted_msg) << endl;
 	cout << "request message is " << request_message << endl;
+	cout_lock.unlock();
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
@@ -290,6 +295,7 @@ string encrypt_return_message(string return_message, int* error_check, const str
 int main(int argc, char** argv){
     // made main_fileserver globally allocated
     main_fileserver.fill_password_map();
+	main_fileserver.init_fs();
     
     int port = 0;
     if (argc == 2) { //port specified

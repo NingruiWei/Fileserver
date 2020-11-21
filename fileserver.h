@@ -15,6 +15,7 @@ struct File{
     priority_queue<int> available_blocks;
     vector<string> blocks;
     File(){ 
+        // read the root inode and determine which blocks are free within root.blocks (spec 6.2)
         for(size_t i = 0; i < FS_MAXFILEBLOCKS; ++i){
             available_blocks.push(i);
         }
@@ -32,13 +33,10 @@ class Fileserver{
         vector<File> files;
         vector<size_t> session_map;
         unordered_map<string, string> password_map;
-        
-        
-
+        fs_inode curr_inode;
+        fs_inode root_inode;
 
     public:
-
-
         Fileserver();
         ~Fileserver();
         int handle_fs_session(string session, string sequence);
@@ -51,13 +49,9 @@ class Fileserver{
         string query_map(string query);
         int query_session_map(int session);
         int valid_session_range();
-
-
-
-
-
-
-
+        fs_inode get_curr_inode();
+        void init_fs();
+        void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
 
 };
 
