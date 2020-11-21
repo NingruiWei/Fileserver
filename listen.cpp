@@ -264,7 +264,7 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_CREATE"){
-		main_fileserver.handle_fs_create(session, sequence, pathname);
+		main_fileserver.handle_fs_create(session, sequence, pathname, block_or_type);
 
 		return_message = session + ' ' + sequence + '\0';
 

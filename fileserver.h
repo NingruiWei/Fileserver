@@ -42,7 +42,7 @@ class Fileserver{
         int handle_fs_session(string session, string sequence);
         string handle_fs_readblock(string session, string sequence, string pathname, string block_or_type);
         void handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type);
-        void handle_fs_create(string session, string sequence, string pathname);
+        void handle_fs_create(string session, string sequence, string pathname, string type);
         void handle_fs_delete(string session, string sequence, string pathname);
         void fill_password_map();
         bool username_in_map(string query);

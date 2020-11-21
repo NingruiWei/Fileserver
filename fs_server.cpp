@@ -40,7 +40,7 @@ void Fileserver::handle_fs_writeblock(string session, string sequence, string pa
 
 void Fileserver::handle_fs_delete(string session, string sequence, string pathname){}
 
-void Fileserver::handle_fs_create(string session, string sequence, string pathname){}
+void Fileserver::handle_fs_create(string session, string sequence, string pathname, string type){}
 
 // search_map returns true if query is already an username in the map
 bool Fileserver::username_in_map(string query){
