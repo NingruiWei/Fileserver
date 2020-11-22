@@ -5,6 +5,8 @@
 #include <string>
 #include <cassert>
 #include <mutex>
+#include <string.h>
+#include <stdio.h>
 using namespace std;
 
 
@@ -46,7 +48,7 @@ void Fileserver::handle_fs_delete(string session, string sequence, string pathna
 void Fileserver::handle_fs_create(string session, string sequence, string pathname, string type){
     fs_inode* temp_node = new fs_inode;
     temp_node->type = type[0];
-    temp_node->owner = session_map[stoi(session)].username;
+    strcpy(temp_node->owner, session_map[stoi(session)].username.c_str());
 
 }
 
@@ -60,7 +62,7 @@ string Fileserver::query_map(string query){
 }
 
 int Fileserver::query_session_map(int session){
-    return session_map[session];
+    return session_map[session].sequence_num;
 }
 
 int Fileserver::valid_session_range(){
@@ -89,6 +91,7 @@ void Fileserver::read_directory(fs_direntry *entries, fs_inode *dir_inode, size_
     
     disk_readblock(dir_inode->blocks[i], &entries);
 }
+
 
 
 

@@ -152,37 +152,43 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 	ssize_t rval;
 	char msg[1];
 	memset(msg, 0, sizeof(msg));
-	string clear_text, encrypted;
-	string username;
-	string size_encrypted;
-	bool begin_encrypt = false;
+	string clear_text;//, encrypted;
+	//string size_encrypted;
 	do {
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
 
-		if(!begin_encrypt){
-			clear_text += string(msg, 1);
-			if(msg[0] == '\0'){
-				begin_encrypt = true;
-				stringstream ss(clear_text);
-				ss >> username >> size_encrypted;
-				if (!main_fileserver.username_in_map(username)) {
-					cout << "no matching username" << endl;
-					close(connectionfd);
-					return -1;
-				}
-			}
-		}
-		else{
-			encrypted += string(msg, 1);
-			// cout << string(msg, 1);
-			if(msg[0] == '\0'){
-				break;
-			}
-		}
+		//Just recv until first null character, then we'll check if username is valid and if it is, we can recv size for entire encrypted message all at once.
 
-		//This is currently a PLACEHOLDER calculation, we need to revisit this to get a more accurate estimate of what the maximum message size can be
-		// - Added the "+2" to first half of check because encrypted is techinically missing the null character and ending bracket
-		if((clear_text + encrypted).size() + 2 > FS_MAXUSERNAME + FS_MAXPATHNAME + FS_BLOCKSIZE + 18){ //message exceeds maximum valid size a message may be, therefore it must be invalid
+		if(msg[0] == '\0'){
+			//We should now have username (space) size of encrypted message, we can break out
+			clear_text += string(msg, 1);
+			break;
+		}
+		clear_text += string(msg, 1);
+
+		// if(!begin_encrypt){
+		// 	clear_text += string(msg, 1);
+		// 	if(msg[0] == '\0'){
+		// 		begin_encrypt = true;
+		// 		stringstream ss(clear_text);
+		// 		ss >> username >> size_encrypted;
+		// 		if (!main_fileserver.username_in_map(username)) {
+		// 			cout << "no matching username" << endl;
+		// 			close(connectionfd);
+		// 			return -1;
+		// 		}
+		// 	}
+		// }
+		// else{
+		// 	encrypted += string(msg, 1);
+		// 	// cout << string(msg, 1);
+		// 	if(msg[0] == '\0'){
+		// 		break;
+		// 	}
+		// }
+
+		//This is currently a PLACEHOLDER calculation, it's a conservative estimate for how long the cleartext message coule be (which is the max length of a username, a space, the maximum length of the encrypted message, and a single null character)
+		if(clear_text.size() > FS_MAXUSERNAME + 6){ //message exceeds maximum valid size a message may be, therefore it must be invalid
 			cout_lock.lock();
 			perror("Message is of an invalid size");
 			cout_lock.unlock();
@@ -191,10 +197,26 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 		}
 
 	} while (rval > 0);  // recv() returns 0 when client closes
+
+	//Check username validity, then recv size for encrypted message (which we can unencrypt the same way we currently do)
+	stringstream cleartext_for_encrypted(clear_text);
+	string username, size;
+	cleartext_for_encrypted >> username >> size;
+	if(main_fileserver.username_in_map(username)){
+		cout_lock.lock();
+		cout << "Invalid username" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return -1;
+	}
+
+	char encrypted_msg[stoi(size)];
+	recv(connectionfd, encrypted_msg, stoi(size), MSG_WAITALL); //recv exactly the number of bits the sender says the encrypted message
+	string encrypted = string(encrypted_msg, stoi(size));
 	
-	// decrypt the message and store in char[]
-	char decrypted_msg[stoi(size_encrypted)];
-	decrypt_message(decrypted_msg, encrypted, username, stoi(size_encrypted), connectionfd);
+	//decrypt the message and store in char[]
+	char decrypted_msg[stoi(size)];
+	decrypt_message(decrypted_msg, encrypted, username, stoi(size), connectionfd);
 
 	string request_message, session, sequence, pathname, block_or_type;
 	stringstream ss2(decrypted_msg);
@@ -236,12 +258,12 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 
 		//READ IN DATA FROM recv by looping recv again
 		ssize_t rval;
-		char data[stoi(size_encrypted) + 1];
+		char data[stoi(size) + 1];
 		do {
-			rval = recv(connectionfd, data, stoi(size_encrypted) + 1, 0);
+			rval = recv(connectionfd, data, stoi(size) + 1, 0);
 		} while (rval > 0);
 
-		// for (size_t i = 0; i < (unsigned)(stoi(size_encrypted) + 1); i++) {
+		// for (size_t i = 0; i < (unsigned)(stoi(size) + 1); i++) {
 		// 	cout_lock.lock();
 		// 	cout << data[i];
 		// 	cout_lock.unlock();

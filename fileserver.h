@@ -10,12 +10,22 @@
 #include <vector>
 #include <queue>
 #include <string>
+#include <shared_mutex>
+#include <mutex>
 using namespace std;
 
 struct session_map_entry{
     size_t sequence_num;
     string username;
 };
+
+struct inode_plus{
+    fs_inode active_inode;
+    fs_direntry entries[FS_DIRENTRIES];
+    mutex write_mutex;
+    shared_mutex read_mutex;
+};
+
 struct File{
     priority_queue<int> available_blocks;
     vector<string> blocks;
