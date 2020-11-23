@@ -181,7 +181,7 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 	stringstream cleartext_for_encrypted(clear_text);
 	string username, size;
 	cleartext_for_encrypted >> username >> size;
-	if(main_fileserver.username_in_map(username)){
+	if(!main_fileserver.username_in_map(username)){
 		cout_lock.lock();
 		cout << "Invalid username" << endl;
 		cout_lock.unlock();

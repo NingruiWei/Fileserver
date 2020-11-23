@@ -14,7 +14,7 @@ using namespace std;
 Fileserver::Fileserver(){}
 Fileserver::~Fileserver(){}
 void split_string_spaces(vector<string> &result, string str){
-    size_t n = count(str.begin(), str.end(), "/");
+    size_t n = count(str.begin(), str.end(), '/');
     result.reserve(n);
     string temp;
     for (char c: str){
@@ -69,8 +69,8 @@ void Fileserver::handle_fs_create(string session, string sequence, string pathna
     vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
-    fs_inode* curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
-    disk_readblock(0, curr_inode);
+    fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
+    disk_readblock(0, &curr_inode);
 
     fs_direntry curr_entires[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
 
@@ -79,13 +79,13 @@ void Fileserver::handle_fs_create(string session, string sequence, string pathna
     */
     while(parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
         int found_inode_block = -1;
-        for(int i = 0; i < FS_MAXFILEBLOCKS; i++){
-            if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
+        for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){
+            if(curr_inode.blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
                 continue;
             }
             
-            disk_readblock(curr_inode->blocks[i], curr_entires); //Read in the current blocks direntries
-            for(int j = 0; j < FS_DIRENTRIES; j++){
+            disk_readblock(curr_inode.blocks[i], curr_entires); //Read in the current blocks direntries
+            for(size_t j = 0; j < FS_DIRENTRIES; j++){
                 if(curr_entires[j].inode_block == 0){
                     continue; //Uninitalized block, skip over it
                 }
@@ -103,7 +103,7 @@ void Fileserver::handle_fs_create(string session, string sequence, string pathna
             }
         }
 
-        disk_readblock(found_inode_block, curr_inode); //Read in the next inode we're concerned with
+        disk_readblock(found_inode_block, &curr_inode); //Read in the next inode we're concerned with
         parsed_pathname.erase(parsed_pathname.begin()); //Remove the first element of the vector so that we look for the next directory we're concerend with
     }
 
@@ -128,14 +128,16 @@ int Fileserver::valid_session_range(){
 }
 
 void Fileserver::init_fs() {
-    fs_inode* root_inode;
-    disk_readblock(0, root_inode);
-    assert(root_inode != nullptr);
+    fs_inode root_inode;
+    disk_readblock(0, &root_inode);
+    // we can't check this assert bc the disk_readblock() function will assert if nothing comes back, so
+    // nothing that comes back from disk_readblock() can be nullptr
+    // assert(&root_inode != nullptr);
 
-    if (root_inode->size > 0) {
-        for (size_t i = 0; i < root_inode->size; i++) {
+    if (root_inode.size > 0) {
+        for (size_t i = 0; i < root_inode.size; i++) {
             // push to free_data_blocks vector/array for fileserver
-            cout << root_inode->blocks[i] << endl;
+            cout << root_inode.blocks[i] << endl;
         }
     }
 }
