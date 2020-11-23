@@ -14,6 +14,7 @@
 #include <mutex>
 using namespace std;
 
+
 struct session_map_entry{
     size_t sequence_num;
     string username;
@@ -48,11 +49,13 @@ class Fileserver{
         vector<File> files;
         vector<session_map_entry> session_map;
         vector<inode_plus> active_inodes;
+        priority_queue<int> available_blocks;
         unordered_map<string, string> password_map;
         
     public:
         Fileserver();
         ~Fileserver();
+        bool blocks_full();
         int handle_fs_session(string session, string sequence, string username);
         string handle_fs_readblock(string session, string sequence, string pathname, string block_or_type);
         void handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type);
@@ -66,34 +69,7 @@ class Fileserver{
         fs_inode get_curr_inode();
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
+        int traverse_pathname(vector<string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[]);
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif 
