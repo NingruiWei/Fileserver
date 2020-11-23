@@ -166,27 +166,6 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 		}
 		clear_text += string(msg, 1);
 
-		// if(!begin_encrypt){
-		// 	clear_text += string(msg, 1);
-		// 	if(msg[0] == '\0'){
-		// 		begin_encrypt = true;
-		// 		stringstream ss(clear_text);
-		// 		ss >> username >> size_encrypted;
-		// 		if (!main_fileserver.username_in_map(username)) {
-		// 			cout << "no matching username" << endl;
-		// 			close(connectionfd);
-		// 			return -1;
-		// 		}
-		// 	}
-		// }
-		// else{
-		// 	encrypted += string(msg, 1);
-		// 	// cout << string(msg, 1);
-		// 	if(msg[0] == '\0'){
-		// 		break;
-		// 	}
-		// }
-
 		//This is currently a PLACEHOLDER calculation, it's a conservative estimate for how long the cleartext message coule be (which is the max length of a username, a space, the maximum length of the encrypted message, and a single null character)
 		if(clear_text.size() > FS_MAXUSERNAME + 6){ //message exceeds maximum valid size a message may be, therefore it must be invalid
 			cout_lock.lock();
@@ -262,15 +241,6 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 		do {
 			rval = recv(connectionfd, data, stoi(size) + 1, 0);
 		} while (rval > 0);
-
-		// for (size_t i = 0; i < (unsigned)(stoi(size) + 1); i++) {
-		// 	cout_lock.lock();
-		// 	cout << data[i];
-		// 	cout_lock.unlock();
-		// }
-		// cout_lock.lock();
-		// cout << endl;
-		// cout_lock.unlock();
 
 		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type);
 		return_message = session + ' ' + sequence + '\0';
