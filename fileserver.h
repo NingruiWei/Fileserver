@@ -20,8 +20,8 @@ struct session_map_entry{
 };
 
 struct inode_plus{
-    fs_inode active_inode;
     fs_direntry entries[FS_DIRENTRIES];
+    fs_inode active_inode;
     mutex write_mutex;
     shared_mutex read_mutex;
 };
@@ -47,10 +47,9 @@ class Fileserver{
     private:
         vector<File> files;
         vector<session_map_entry> session_map;
+        vector<inode_plus> active_inodes;
         unordered_map<string, string> password_map;
-        fs_inode curr_inode;
-        fs_inode root_inode;
-
+        
     public:
         Fileserver();
         ~Fileserver();

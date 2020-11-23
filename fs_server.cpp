@@ -7,12 +7,32 @@
 #include <mutex>
 #include <string.h>
 #include <stdio.h>
+#include <algorithm>
 using namespace std;
 
 
 Fileserver::Fileserver(){}
 Fileserver::~Fileserver(){}
+void split_string_spaces(vector<string> &result, string str){
+    size_t n = count(str.begin(), str.end(), "/");
+    result.reserve(n);
+    string temp;
+    for (char c: str){
+        if(result.size() == 0){
+            result.push_back("/");
+            continue;
+        }
+        if (c == '/'){
+            result.push_back(temp);
+            temp.clear();
+        }
+        else{
+            temp += c;
+        }
+    }
 
+    
+}
 void Fileserver::fill_password_map(){
     string username, password;
     while(cin >> username >> password){
@@ -46,10 +66,22 @@ void Fileserver::handle_fs_writeblock(string session, string sequence, string pa
 void Fileserver::handle_fs_delete(string session, string sequence, string pathname){}
 
 void Fileserver::handle_fs_create(string session, string sequence, string pathname, string type){
-    fs_inode* temp_node = new fs_inode;
-    temp_node->type = type[0];
-    strcpy(temp_node->owner, session_map[stoi(session)].username.c_str());
+    vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
 
+    fs_inode* curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
+    disk_readblock(0, curr_inode);
+    fs_direntry curr_entires[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
+    while(parsed_pathname.size() > 1){
+        for(int i = 0; i < FS_MAXFILEBLOCKS; i++){
+            if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
+                continue;
+            }
+            
+            disk_readblock(curr_inode->blocks[i], curr_entires); //Read in the current blocks direntries
+            
+            
+        }
+    }  
 }
 
 // search_map returns true if query is already an username in the map
@@ -74,7 +106,10 @@ fs_inode Fileserver::get_curr_inode() {
 }
 
 void Fileserver::init_fs() {
-    disk_readblock(0, &root_inode);
+    fs_inode* root_inode;
+    disk_readblock(0, root_inode);
+    assert(root_inode != nullptr);
+
     if (root_inode.size > 0) {
         for (size_t i = 0; i < root_inode.size; i++) {
             // push to free_data_blocks vector/array for fileserver
