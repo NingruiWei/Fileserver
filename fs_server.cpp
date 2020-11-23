@@ -16,7 +16,7 @@ Fileserver::Fileserver(){}
 Fileserver::~Fileserver(){}
 
 void split_string_spaces(vector<string> &result, string str){
-    size_t n = count(str.begin(), str.end(), '/');
+    size_t n = count(str.begin(), str.end(), "/");
     result.reserve(n);
     string temp;
     for (char c: str){
@@ -32,7 +32,7 @@ void split_string_spaces(vector<string> &result, string str){
             temp += c;
         }
     }
-    
+
     reverse(result.begin(), result.end());
 }
 
@@ -105,12 +105,12 @@ string Fileserver::handle_fs_readblock(string session, string sequence, string p
     vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
-    fs_inode* curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
-    disk_readblock(0, curr_inode);
+    fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
+    disk_readblock(0, &curr_inode);
 
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
 
-    int success_fail = traverse_pathname(parsed_pathname, curr_inode, curr_entries);
+    int success_fail = traverse_pathname(parsed_pathname, &curr_inode, curr_entries);
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
 
@@ -122,11 +122,11 @@ string Fileserver::handle_fs_readblock(string session, string sequence, string p
 
     int found_inode_block = -1;
     for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){ //Search for the block which has the file we're interested in
-        if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
+        if(curr_inode.blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
             continue;
         }
         
-        disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
+        disk_readblock(curr_inode.blocks[i], curr_entries); //Read in the current blocks direntries
         for(size_t j = 0; j < FS_DIRENTRIES; j++){
             if(curr_entries[j].inode_block == 0){
                 continue; //Uninitalized block, skip over it
@@ -145,14 +145,14 @@ string Fileserver::handle_fs_readblock(string session, string sequence, string p
         }
     }
 
-    disk_readblock(found_inode_block, curr_inode); //Read in the inode we're going to read from
+    disk_readblock(found_inode_block, &curr_inode); //Read in the inode we're going to read from
 
     for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){
-        if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
+        if(curr_inode.blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
             continue;
         }
         char curr_read[FS_BLOCKSIZE];
-        disk_readblock(curr_inode->blocks[i], curr_read); //Read in the current blocks direntries
+        disk_readblock(curr_inode.blocks[i], curr_read); //Read in the current blocks direntries
         return_string += string(curr_read, FS_BLOCKSIZE);
     }
 
@@ -240,14 +240,13 @@ void Fileserver::init_fs() {
     for(size_t i = 0; i < FS_MAXFILEBLOCKS; ++i){
         available_blocks.push(i);
     }
-    fs_inode* root_inode;
-    disk_readblock(0, root_inode);
-    assert(root_inode != nullptr);
+    fs_inode root_inode;
+    disk_readblock(0, &root_inode);
 
-    if (root_inode->size > 0) {
-        for (size_t i = 0; i < root_inode->size; i++) {
+    if (root_inode.size > 0) {
+        for (size_t i = 0; i < root_inode.size; i++) {
             // push to free_data_blocks vector/array for fileserver
-            cout << root_inode->blocks[i] << endl;
+            cout << root_inode.blocks[i] << endl;
         }
     }
 }
