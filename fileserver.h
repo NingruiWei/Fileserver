@@ -71,6 +71,7 @@ class Fileserver{
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
         int traverse_pathname(vector<string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[]);
+        int traverse_single_file(string desired_file, fs_inode* curr_inode, fs_direntry curr_entires[]);
 
 };
 #endif 
