@@ -15,16 +15,31 @@ Fileserver::Fileserver(){}
 
 Fileserver::~Fileserver(){}
 
+fs_inode create_inode(string type, string owner){
+    fs_inode temp;
+    temp.type = type[0];
+    strcpy(temp.owner, owner.c_str());
+    return temp;
+}
+
+int insert_into_curr_entries(fs_direntry* curr, fs_direntry temp){
+    for (size_t i = 0; i < FS_DIRENTRIES; ++i){ // loop through the array
+        if(curr[i].inode_block == 0 ){ // if the current element is empty
+            curr[i].inode_block = temp.inode_block;
+            strcpy(curr[i].name, temp.name);
+        }
+    }
+}
+
 void split_string_spaces(vector<string> &result, string str){
     size_t n = count(str.begin(), str.end(), '/');
     result.reserve(n);
     string temp;
     for (char c: str){
-        if(result.size() == 0){
-            result.push_back("/");
-            continue;
-        }
         if (c == '/'){
+            if(result.size() == 0){
+                continue;
+            }
             result.push_back(temp);
             temp.clear();
         }
@@ -32,6 +47,7 @@ void split_string_spaces(vector<string> &result, string str){
             temp += c;
         }
     }
+    result.push_back(temp);
 
     reverse(result.begin(), result.end());
 }
@@ -46,7 +62,7 @@ int Fileserver::traverse_pathname(vector<string> &parsed_pathname, fs_inode* cur
         }
 
         int found_inode_block = -1;
-        for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){
+        for(size_t i = 0; i < curr_inode->size; i++){
             if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
                 continue;
             }
@@ -247,19 +263,26 @@ void Fileserver::handle_fs_create(string session, string sequence, string pathna
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
-    curr_inode.blocks[0] = available_blocks.top();
-    available_blocks.pop();
+  
     disk_readblock(0, &curr_inode);
 
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
-
-    int success_fail = traverse_pathname(parsed_pathname, &curr_inode, curr_entries);
+    int direntry_block;
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries) == -1){};
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
-
-    if(success_fail == -1){
-        //travesal failed due to an invalid pathname, tell listen to close connection
+    fs_inode temp = create_inode(type, session_map[stoi(session)].username);
+    if(type == "d"){
+        temp.size = 0;
     }
+
+    fs_direntry temp_entry;
+    temp_entry.inode_block[0] = available_blocks.front();
+    available_blocks.pop();
+    strcpy(temp_entry.name, parsed_pathname.back());
+    insert_into_curr_entries(curr_entries, temp_entry);
+    //disk_writeblock()
+    disk_writeblock(temp_entry.inode_block[0], &temp);
 
     //Create new inode and write the change up to the directories above it (and write that change to its inode)
 }

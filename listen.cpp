@@ -355,7 +355,10 @@ int main(int argc, char** argv){
 		}
 
 		thread t1(handle_connection, connectionfd);
-		t1.detach();
+		t1.join();
+		//t1.detach();
+		// RLAKFJASDKLFJASDKJFKSDJKLJASDFJASD KLFJKLAWERLFJ AWERIOFJ ASDKLJF KLASEJ FIOAEOFKLJ ASDLIAWEJAKLSJFLKASJKZXFLAWKFIJSDAKLJFLAWKEJGHAERJGILJA 
+		// UNDO THIS
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();
