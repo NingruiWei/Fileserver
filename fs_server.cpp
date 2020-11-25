@@ -15,7 +15,37 @@ Fileserver::Fileserver(){}
 
 Fileserver::~Fileserver(){}
 
-fs_inode create_inode(string type, string owner){
+void Fileserver::lock_on_disk(std::string path, bool shared_lock){
+    lock_guard<mutex> fs_lock(filerserver_lock);
+    directory_lock_map[path].lock_uses++;
+    if(shared_lock){
+        //If this is a shared lock (meant for reading) we need to do a shared locking function
+        directory_lock_map[path].lock.lock_shared();
+    }
+    else{
+        //Not a shared lock (meant for writing)
+         directory_lock_map[path].lock.lock();
+    }
+}
+
+void Fileserver::unlock_on_disk(std::string path, bool shared_lock){
+    lock_guard<mutex> fs_lock(filerserver_lock);
+    on_disk_lock *to_unlock = &directory_lock_map[path];
+    to_unlock->lock_uses--;
+    
+    if(shared_lock){
+        to_unlock->lock.unlock_shared();
+    }
+    else{
+        to_unlock->lock.unlock();
+    }
+
+    if(to_unlock->lock_uses == 0){
+        directory_lock_map.erase(path);
+    }
+}
+
+fs_inode create_inode(std::string type, std::string owner){
     fs_inode temp;
     temp.type = type[0];
     strcpy(temp.owner, owner.c_str());
@@ -35,10 +65,10 @@ int insert_into_curr_entries(fs_direntry* curr, fs_direntry temp){
     return -1;
 }
 
-void split_string_spaces(vector<string> &result, string str){
+void split_string_spaces(vector<std::string> &result, std::string str){
     size_t n = count(str.begin(), str.end(), '/');
     result.reserve(n);
-    string temp;
+    std::string temp;
     for (char c: str){
         if (c == '/'){
             if(result.size() == 0){
@@ -56,7 +86,7 @@ void split_string_spaces(vector<string> &result, string str){
     reverse(result.begin(), result.end());
 }
 
-int Fileserver::traverse_pathname(vector<string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block){
+int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block){
     //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
 
     while(parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
@@ -100,7 +130,7 @@ int Fileserver::traverse_pathname(vector<string> &parsed_pathname, fs_inode* cur
     return 0;
 }
 
-int Fileserver::traverse_single_file(string desired_file, fs_inode* curr_inode, fs_direntry curr_entries[]){
+int Fileserver::traverse_single_file(std::string desired_file, fs_inode* curr_inode, fs_direntry curr_entries[]){
     int found_inode_block = -1;
     for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){ //Search for the block which has the file we're interested in
         if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
@@ -133,9 +163,9 @@ int Fileserver::traverse_single_file(string desired_file, fs_inode* curr_inode, 
 }
 
 void Fileserver::fill_password_map(){
-    string username, password;
+    std::string username, password;
     while(cin >> username >> password){
-        if(password_map.find(username)== password_map.end()){
+        if(password_map.find(username) == password_map.end()){
             password_map[username] = password;
         }
         else{
@@ -148,7 +178,7 @@ void Fileserver::fill_password_map(){
 
 } // fill_password_map
 
-int Fileserver::handle_fs_session(string session, string sequence, string username){
+int Fileserver::handle_fs_session(std::string session, std::string sequence, std::string username){
     session_map_entry temp;
     temp.sequence_num = stoi(sequence); // do we have to dynamically allocate and just store as a pointer? HMMM
     temp.username = username;
@@ -156,8 +186,8 @@ int Fileserver::handle_fs_session(string session, string sequence, string userna
     return session_map.size() - 1;
 }
 
-string Fileserver::handle_fs_readblock(string session, string sequence, string pathname, string block_or_type){
-    vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
+std::string Fileserver::handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type){
+    vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
@@ -172,7 +202,7 @@ string Fileserver::handle_fs_readblock(string session, string sequence, string p
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
 
-    string return_string;
+    std::string return_string;
 
     if(traverse_single_file(parsed_pathname.front(), &curr_inode, curr_entries) == -1){
         //Error, could not find desired file/directory. Error
@@ -184,14 +214,14 @@ string Fileserver::handle_fs_readblock(string session, string sequence, string p
         }
         char curr_read[FS_BLOCKSIZE];
         disk_readblock(curr_inode.blocks[i], curr_read); //Read in the current blocks direntries
-        return_string += string(curr_read, FS_BLOCKSIZE);
+        return_string += std::string(curr_read, FS_BLOCKSIZE);
     }
 
     return return_string;
 }
 
-void Fileserver::handle_fs_writeblock(string session, string sequence, string pathname, string block_or_type){
-    vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
+void Fileserver::handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type){
+    vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
@@ -218,8 +248,8 @@ void Fileserver::handle_fs_writeblock(string session, string sequence, string pa
     }
 }
 
-void Fileserver::handle_fs_delete(string session, string sequence, string pathname){
-    vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
+void Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
+    vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
@@ -268,8 +298,8 @@ void Fileserver::handle_fs_delete(string session, string sequence, string pathna
 
 }
 
-void Fileserver::handle_fs_create(string session, string sequence, string pathname, string type){
-    vector<string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
+void Fileserver::handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type){
+    vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
@@ -318,11 +348,11 @@ void Fileserver::handle_fs_create(string session, string sequence, string pathna
 }
 
 // search_map returns true if query is already an username in the map
-bool Fileserver::username_in_map(string query){
+bool Fileserver::username_in_map(std::string query){
     return password_map.find(query) != password_map.end();
 }
 
-string Fileserver::query_map(string query){
+string Fileserver::query_map(std::string query){
     return password_map[query];
 }
 
