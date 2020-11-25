@@ -50,7 +50,7 @@ class Fileserver{
         vector<File> files;
         vector<session_map_entry> session_map;
         vector<inode_plus> active_inodes;
-        priority_queue<int> available_blocks;
+        priority_queue<size_t> available_blocks;
         unordered_map<string, string> password_map;
         
     public:
@@ -70,7 +70,7 @@ class Fileserver{
         fs_inode get_curr_inode();
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
-        int traverse_pathname(vector<string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[]);
+        int traverse_pathname(vector<string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block);
         int traverse_single_file(string desired_file, fs_inode* curr_inode, fs_direntry curr_entires[]);
 
 };
