@@ -235,12 +235,10 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 	}
 	else if(request_message == "FS_WRITEBLOCK"){
 
-		//READ IN DATA FROM recv by looping recv again
-		ssize_t rval;
-		char data[stoi(size) + 1];
-		do {
-			rval = recv(connectionfd, data, stoi(size) + 1, 0);
-		} while (rval > 0);
+		string data, temp;
+		while(ss2 >> temp){ //Read in the data from the stringstream of the decrypted message and append it to a larger data string that can be sent to handle_fs_writeblock
+			data += temp;
+		}
 
 		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type);
 		return_message = session + ' ' + sequence + '\0';

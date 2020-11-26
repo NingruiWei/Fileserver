@@ -55,7 +55,7 @@ class Fileserver{
         int traverse_single_file(std::string desired_file, fs_inode* curr_inode, fs_direntry curr_entires[]);
         void lock_on_disk(std::string path, bool shared_lock);
         void unlock_on_disk(std::string path, bool shared_lock);
-        int add_block_to_inode(fs_inode* curr);
+        int add_block_to_inode(fs_inode* curr, fs_direntry curr_entries[], string filename);
 
 };
 struct path_lock{
