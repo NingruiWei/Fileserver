@@ -27,10 +27,13 @@ int main(int argc, char *argv[])
     fs_clientinit(server, server_port);
     cout << "clientinit finished" << endl;
     fs_session("user1", "password1", &session, seq++);
-    fs_create("user1", "password1", session, seq++, "/dir", 'd');
+    fs_create("user1", "password1", session, seq++, "/paul", 'f');
+    fs_create("user1", "password1", session, seq++, "/klee", 'f');
+    fs_writeblock("user1", "password1", session, seq++, "/paul", 0, writedata);
+    fs_readblock("user1", "password1", session, seq++, "/paul", 0, readdata);
     fs_create("user1", "password1", session, seq++, "/dir/file", 'f');
-    fs_writeblock("user1", "password1", session, seq++, "/dir/file", 0, writedata);
-    fs_readblock("user1", "password1", session, seq++, "/dir/file", 0, readdata);
-    fs_delete("user1", "password1", session, seq++, "/dir/file");
-    fs_delete("user1", "password1", session, seq++, "/dir");
+    // fs_writeblock("user1", "password1", session, seq++, "/dir/file", 0, writedata);
+    // fs_readblock("user1", "password1", session, seq++, "/dir/file", 0, readdata);
+    // fs_delete("user1", "password1", session, seq++, "/dir/file");
+    // fs_delete("user1", "password1", session, seq++, "/dir");
 }

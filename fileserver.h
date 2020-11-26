@@ -20,67 +20,16 @@ struct session_map_entry{
     size_t sequence_num;
     std::string username;
 };
-
-struct inode_plus{
-    fs_direntry entries[FS_DIRENTRIES];
-    fs_inode active_inode;
-    mutex write_mutex;
-    shared_mutex read_mutex;
-};
-
-struct File{
-    priority_queue<int> available_blocks;
-    vector<std::string> blocks;
-    File(){ 
-        // read the root inode and determine which blocks are free within root.blocks (spec 6.2)
-        for(size_t i = 0; i < FS_MAXFILEBLOCKS; ++i){
-            available_blocks.push(i);
-        }
-        blocks.resize(FS_MAXFILEBLOCKS);
-    }
-
-    bool is_full(){
-        return available_blocks.empty();
-    }
-
-};
-
-struct path_lock{
-    std::string pathname;
-    bool shared_lock;
-    Fileserver *running_fs;
-
-    path_lock(std::string path, bool shared_status, Fileserver *current_server){
-        pathname = path;
-        shared_lock = shared_status;
-        running_fs = current_server;
-        running_fs->lock_on_disk(pathname, shared_lock);
-    }
-
-    //RAII unlock
-    ~path_lock(){
-        running_fs->unlock_on_disk(pathname, shared_lock);
-    }
-
-    //Hand-over-hand locking so that we can easily switch locks with one another.
-    void swap_lock(path_lock *swap_to){
-        swap(this->shared_lock, swap_to->shared_lock);
-        swap(this->pathname, swap_to->pathname);
-    }
-        
-};
-
 struct on_disk_lock{
     int lock_uses;
-    shared_mutex lock;
+    //shared_mutex lock;
 };
+
 
 class Fileserver{
     private:
-        vector<File> files;
         vector<session_map_entry> session_map;
-        vector<inode_plus> active_inodes;
-        priority_queue<size_t> available_blocks;
+        priority_queue<size_t, vector<size_t>, greater<size_t> > available_blocks;
         unordered_map<std::string, std::string> password_map;
         unordered_map<std::string, on_disk_lock> directory_lock_map;
         mutex filerserver_lock;
@@ -106,6 +55,34 @@ class Fileserver{
         int traverse_single_file(std::string desired_file, fs_inode* curr_inode, fs_direntry curr_entires[]);
         void lock_on_disk(std::string path, bool shared_lock);
         void unlock_on_disk(std::string path, bool shared_lock);
+        int add_block_to_inode(fs_inode* curr);
 
 };
+struct path_lock{
+    std::string pathname;
+    bool shared_lock;
+    Fileserver *running_fs;
+
+    path_lock(std::string path, bool shared_status, Fileserver *current_server){
+        pathname = path;
+        shared_lock = shared_status;
+        running_fs = current_server;
+        running_fs->lock_on_disk(pathname, shared_lock);
+    }
+
+    //RAII unlock
+    ~path_lock(){
+        running_fs->unlock_on_disk(pathname, shared_lock);
+    }
+
+    //Hand-over-hand locking so that we can easily switch locks with one another.
+    void swap_lock(path_lock *swap_to){
+        swap(this->shared_lock, swap_to->shared_lock);
+        swap(this->pathname, swap_to->pathname);
+    }
+        
+};
+
+
+
 #endif 
