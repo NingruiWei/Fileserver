@@ -99,9 +99,11 @@ void split_string_spaces(vector<std::string> &result, std::string str){
     size_t n = count(str.begin(), str.end(), '/');
     result.reserve(n);
     std::string temp;
+    bool first = true;
     for (char c: str){
         if (c == '/'){
-            if(result.size() == 0){
+            if(first){
+                first = false;
                 continue;
             }
             result.push_back(temp);
@@ -382,6 +384,9 @@ void Fileserver::handle_fs_create(std::string session, std::string sequence, std
         if (parent_entries_block == -1){
             //If there were no free blocks left, then you cannot add a new block to the inode, ERROR
         }
+        for(size_t i = 0; i < FS_DIRENTRIES; ++i){ // initializes it all to 0 for now
+            curr_entries[i].inode_block = 0;
+            }
         curr_entries_full = true;
     }
     
