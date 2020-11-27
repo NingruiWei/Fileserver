@@ -57,7 +57,7 @@ bool Fileserver::blocks_full(){
 }
 
 // adds block to inode passed in and returns the block number. If returns -1, then we dont have space either in the inode or we ran out of blocks.
-int Fileserver::add_block_to_inode(fs_inode* curr, fs_direntry curr_entries[], string filename){ 
+int Fileserver::add_block_to_inode(fs_inode* curr){ 
     if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
         return -1;
     }
@@ -126,68 +126,57 @@ bool direntries_full(fs_direntry entries[]){
     }
     return true;
 }
+// afterwards parent_inode block will be the block of the directory that we're going to insert stuff into, parent_entries block will be the correct entries block, or 0 if one does not exist
+// curr_inode should be the root coming in.
 
-int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block){
+int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool create){
     //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
-    int found_inode_block = -1;
-    if(parsed_pathname.size() <= 1){
-        for(size_t i = 0; i < curr_inode->size; i++){
-            disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
-            for(size_t j = 0; j < FS_DIRENTRIES; j++){
-                if(curr_entries[j].inode_block == 0){
-                    //Found matching filename, save inode block and break out
-                    parent_entries_block = curr_inode->blocks[i];
-                    found_inode_block = curr_entries[j].inode_block;
-                    break;
-                }
-            }
+    parent_inode_block = 0;
+    parent_entries_block = 0;
 
-            if(found_inode_block != -1){
-                //We already found our inode block, so we can just move onto looking for the next directory.
-                break;
-            }
-        }
-    }
-
-    while(parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
+    while((!create && parsed_pathname.size() > 0) || parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
         if(curr_inode->type == 'f'){
             //File should only ever be the last thing along the path, if it's not it should be an error. Double check this assumption
             return -1;
         }
 
-        found_inode_block = -1;
+        
         for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
-                if(curr_entries[j].name == parsed_pathname.back()){
-                    //Found matching filename, save inode block and break out
-                    parent_entries_block = curr_inode->blocks[i];
-                    found_inode_block = curr_entries[j].inode_block;
-                    break;
+                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                    parent_inode_block = curr_entries[j].inode_block;
+                    
+                    goto loop;
                 }
             }
-
-            if(found_inode_block != -1){
-                //We already found our inode block, so we can just move onto looking for the next directory.
-                break;
-            }
         }
-
-        if(found_inode_block == -1){
-            //matching filename or directory was not found, the pathname was invalid
-            return -1;
-        }
-
-        parent_inode_block = found_inode_block;
-        disk_readblock(found_inode_block, curr_inode); //Read in the next inode we're concerned with
+        //matching filename or directory was not found, the pathname was invalid
+        return -1;
+        
+        loop:
+        disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
     }
+    if(!create){goto end;}
+    
+    // once we have found the inode we are inserting in we see if there's already space or not in the thing
+    for(size_t i = 0; i < curr_inode->size; i++){
+            disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
+            for(size_t j = 0; j < FS_DIRENTRIES; j++){
+                if(curr_entries[j].inode_block == 0){
+                    //Found matching filename, save inode block and break out
+                    parent_entries_block = curr_inode->blocks[i];
+                    goto end;
+                }
+            }
+        }
 
     //If the inode has no initalized blocks, then we need to make it a new block
     if(curr_inode->size == 0 || direntries_full(curr_entries)){
         parent_entries_block = 0;
     }
-
+    end:
     return 0;
 }
 
@@ -200,7 +189,7 @@ int Fileserver::traverse_single_file(std::string desired_file, fs_inode* curr_in
         
         disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
         for(size_t j = 0; j < FS_DIRENTRIES; j++){
-            if(curr_entries[j].name == desired_file){
+            if(strcmp(curr_entries[j].name, desired_file.c_str()) == 0){
                 //Found matching filename, save inode block and break out
                 found_inode_block = curr_entries[j].inode_block;
                 break;
@@ -257,7 +246,7 @@ std::string Fileserver::handle_fs_readblock(std::string session, std::string seq
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int temp2, temp1;
 
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2, false) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
     }
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
@@ -281,32 +270,32 @@ std::string Fileserver::handle_fs_readblock(std::string session, std::string seq
     return return_string;
 }
 
-void Fileserver::handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type){
+void Fileserver::handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data){
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
-
+    string remain = parsed_pathname.front();
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
 
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
-    int temp1, temp2;
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2) == -1){
+    int parent_inode_block = 0, parent_entries_block;
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
     }
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
+    // after traverse pathname we want parent_entries
+    // we're one short always
+    
 
-    fs_inode prior_inode = curr_inode;
-    fs_direntry prior_entries[FS_DIRENTRIES];
+    // we always need to add a new block to blocks
+    disk_readblock(parent_inode_block, &curr_inode);
+    int new_block = add_block_to_inode(&curr_inode);
 
-    for(size_t i = 0; i < FS_DIRENTRIES; i++){
-        prior_entries[i] = curr_entries[i];
-    }
-
+    disk_writeblock(new_block, data);
+    disk_writeblock(parent_inode_block, &curr_inode);
    
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2) == -1){
-        //Error, could not find desired file/directory. Error
-    }
+   
 }
 
 void Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
@@ -319,13 +308,12 @@ void Fileserver::handle_fs_delete(std::string session, std::string sequence, std
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
 
     int temp1, temp2;
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2, true) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
     }
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
 
-    fs_inode prior_inode = curr_inode;
     fs_direntry prior_entries[FS_DIRENTRIES];
 
     for(size_t i = 0; i < FS_DIRENTRIES; i++){
@@ -333,7 +321,7 @@ void Fileserver::handle_fs_delete(std::string session, std::string sequence, std
     }
 
    
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2, true) == -1){
         //Error, could not find desired file/directory. Error
     }
 
@@ -373,14 +361,14 @@ void Fileserver::handle_fs_create(std::string session, std::string sequence, std
     }
     int parent_inode_block = 0, parent_entries_block = 0;
     
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, true) == -1){
         //Invalid pathname, ERROR
     }
     // if no room currently to add new direntry
 
     bool curr_entries_full = false;
     if(parent_entries_block == 0){
-        parent_entries_block = add_block_to_inode(&curr_inode, curr_entries, parsed_pathname.front());
+        parent_entries_block = add_block_to_inode(&curr_inode);
         if (parent_entries_block == -1){
             //If there were no free blocks left, then you cannot add a new block to the inode, ERROR
         }

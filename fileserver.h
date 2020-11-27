@@ -40,7 +40,7 @@ class Fileserver{
         bool blocks_full();
         int handle_fs_session(std::string session, std::string sequence, std::string username);
         std::string handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type);
-        void handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type);
+        void handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data);
         void handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type);
         void handle_fs_delete(std::string session, std::string sequence, std::string pathname);
         void fill_password_map();
@@ -51,11 +51,11 @@ class Fileserver{
         fs_inode get_curr_inode();
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
-        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block);
+        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool create);
         int traverse_single_file(std::string desired_file, fs_inode* curr_inode, fs_direntry curr_entires[]);
         void lock_on_disk(std::string path, bool shared_lock);
         void unlock_on_disk(std::string path, bool shared_lock);
-        int add_block_to_inode(fs_inode* curr, fs_direntry curr_entries[], string filename);
+        int add_block_to_inode(fs_inode* curr);
 
 };
 struct path_lock{

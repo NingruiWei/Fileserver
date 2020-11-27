@@ -112,7 +112,7 @@ string encrypt_return_message(string return_message, int* error_check, const str
 	return appender;
 }
 
-void decrypt_message(char *decrypted_msg, string &encrypted, string &username, int size_encrypted, int connectionfd) {
+int decrypt_message(char *decrypted_msg, string &encrypted, string &username, int size_encrypted, int connectionfd) {
 	// original encrypted string does not contain <NULL> in the right location, so
 	// this is to recreate what the c_string should be when passed into fs_decrypt()
 	char encrypted_cstr[size_encrypted];
@@ -129,16 +129,17 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 		cout << "Decryption failed" << endl;
 		cout_lock.unlock();
 		close(connectionfd);
-		return;
+		return -1;
 	}
 
-	if(!check_fs(string(decrypted_msg))){
-		cout_lock.lock();
-		cout << "Invalid message received" << endl;
-		cout_lock.unlock();
-		close(connectionfd);
-		return;
-	}
+	// if(!check_fs(string(decrypted_msg))){
+	// 	cout_lock.lock();
+	// 	cout << "Invalid message received" << endl;
+	// 	cout_lock.unlock();
+	// 	close(connectionfd);
+	// 	return -1;
+	// }
+	return decryption;
 }
 
  int handle_connection(int connectionfd) {
@@ -195,7 +196,7 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 	
 	//decrypt the message and store in char[]
 	char decrypted_msg[stoi(size)];
-	decrypt_message(decrypted_msg, encrypted, username, stoi(size), connectionfd);
+	int decrypted_len = decrypt_message(decrypted_msg, encrypted, username, stoi(size), connectionfd);
 
 	string request_message, session, sequence, pathname, block_or_type;
 	stringstream ss2(decrypted_msg);
@@ -234,13 +235,21 @@ void decrypt_message(char *decrypted_msg, string &encrypted, string &username, i
 
 	}
 	else if(request_message == "FS_WRITEBLOCK"){
+		size_t specified_size = decrypted_len;
+		auto header_len = strnlen(decrypted_msg, specified_size); // must check if header size is valid later on
+		auto data_len = specified_size - header_len - 1;
+		cout_lock.lock();
+		cout << "DATA_LEN = " << data_len << endl;
+		cout << "HEADER_LEN = " << header_len << endl;
+		cout << "specified_size = " << specified_size << endl;
+		cout_lock.unlock();
+		char data[FS_BLOCKSIZE];
+		memcpy(data, decrypted_msg + header_len + 1, data_len); // eventually if replace FS_BLOCKSIZE with the size of data actually passed in for error checking
+		cout_lock.lock();
+		cout << data << endl;
+		cout_lock.unlock();
 
-		string data, temp;
-		while(ss2 >> temp){ //Read in the data from the stringstream of the decrypted message and append it to a larger data string that can be sent to handle_fs_writeblock
-			data += temp;
-		}
-
-		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type);
+		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type, data);
 		return_message = session + ' ' + sequence + '\0';
 
 		int fail_check = 0;
