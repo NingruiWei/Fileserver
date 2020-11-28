@@ -22,7 +22,7 @@ struct session_map_entry{
 };
 struct on_disk_lock{
     int lock_uses;
-    //shared_mutex lock;
+    shared_mutex lock;
 };
 
 
@@ -32,17 +32,17 @@ class Fileserver{
         priority_queue<size_t, vector<size_t>, greater<size_t> > available_blocks;
         unordered_map<std::string, std::string> password_map;
         unordered_map<std::string, on_disk_lock> directory_lock_map;
-        mutex filerserver_lock;
+        mutex fileserver_lock;
         
     public:
         Fileserver();
         ~Fileserver();
         bool blocks_full();
         int handle_fs_session(std::string session, std::string sequence, std::string username);
-        std::string handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type);
-        void handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data);
-        void handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type);
-        void handle_fs_delete(std::string session, std::string sequence, std::string pathname);
+        int handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* readdata);
+        int handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data);
+        int handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type);
+        int handle_fs_delete(std::string session, std::string sequence, std::string pathname);
         void fill_password_map();
         bool username_in_map(std::string query);
         std::string query_map(std::string query);
@@ -51,8 +51,9 @@ class Fileserver{
         fs_inode get_curr_inode();
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
-        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool create);
-        int traverse_single_file(std::string desired_file, fs_inode* curr_inode, fs_direntry curr_entires[]);
+        int traverse_pathname_delete(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
+                                    int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entry_index, int& parent_inode_block);
+        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool type);
         void lock_on_disk(std::string path, bool shared_lock);
         void unlock_on_disk(std::string path, bool shared_lock);
         int add_block_to_inode(fs_inode* curr);
@@ -82,7 +83,5 @@ struct path_lock{
     }
         
 };
-
-
 
 #endif 

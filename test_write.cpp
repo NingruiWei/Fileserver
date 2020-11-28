@@ -48,5 +48,6 @@ int main(int argc, char *argv[])
     fs_create("user1", "password1", session, seq++, "/jake7/paul", 'f');
     fs_writeblock("user1", "password1", session, seq++, "/jake7/paul", 0, data1);
     fs_create("user1", "password1", session, seq++, "/paul/klee/jean/jarjar", 'd');
+    return 0;
     
 }

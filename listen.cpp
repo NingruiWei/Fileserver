@@ -81,7 +81,7 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	return ntohs(addr.sin_port);
 }
 
-string encrypt_return_message(string return_message, int* error_check, const string username){
+string encrypt_return_message(string return_message, int* error_check, const string username, bool readblock){
 	char return_encrypt[(return_message.size()*2) + 64];
 	int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), return_message.c_str(), return_message.size(), return_encrypt);
 
@@ -97,7 +97,8 @@ string encrypt_return_message(string return_message, int* error_check, const str
 	string appender;
 	int msg_size = 0;
 	bool null_flag = false;
-	for (size_t i = 0; i < (return_message.size()*2) + 64; i++) {
+	size_t i = 0;
+	for (; i < (return_message.size()*2) + 64; i++) {
 		appender += return_encrypt[i];
 		msg_size += 1;
 		if (null_flag) {
@@ -105,6 +106,14 @@ string encrypt_return_message(string return_message, int* error_check, const str
 		}
 		if (return_encrypt[i] == '\0') {
 			null_flag = true;
+		}
+	}
+
+	if(readblock){
+		size_t already_read = i;
+		for(; i < already_read + 512; i++){
+			appender += return_encrypt[i + 1];
+			msg_size += 1;
 		}
 	}
 	appender = to_string(msg_size) + '\0' + appender; // null character doesn't actually append
@@ -123,6 +132,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	//cout << encrypted_cstr[size_encrypted - 1] << endl;
 
 	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted_cstr, size_encrypted, decrypted_msg);
+	// cout << "DECRYPTION: " << decryption << endl;
 
 	if (decryption == -1) {
 		cout_lock.lock();
@@ -131,6 +141,8 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		close(connectionfd);
 		return -1;
 	}
+
+	// MUST FINISH IMPLEMENTING
 
 	// if(!check_fs(string(decrypted_msg))){
 	// 	cout_lock.lock();
@@ -211,7 +223,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username);
+		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
 
 		if(fail_check == -1){
 			close(connectionfd);
@@ -221,10 +233,15 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		send(connectionfd, appender.c_str(), appender.size(), 0); // appender.c_str() does not contain the <NULL> before the last closing bracket
 	}
 	else if(request_message == "FS_READBLOCK"){
-		string read_data = main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type);
-		return_message = session + ' ' + sequence + '\0' + read_data;
+		cout_lock.lock();
+        cout << "INSIDE FS_READBLOCK LINE 225" << endl;
+		cout_lock.unlock();
+		char read_data[FS_BLOCKSIZE];
+		main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type, read_data);
+		string data_string = string(read_data, 512);
+		return_message = session + ' ' + sequence + '\0' + data_string;
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username);
+		string appender = encrypt_return_message(return_message, &fail_check, username, 1);
 
 		if(fail_check == -1){
 			close(connectionfd);
@@ -253,7 +270,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return_message = session + ' ' + sequence + '\0';
 
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username);
+		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
 
 		if(fail_check == -1){
 			close(connectionfd);
@@ -268,7 +285,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return_message = session + ' ' + sequence + '\0';
 
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username);
+		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
 
 		if(fail_check == -1){
 			close(connectionfd);
@@ -283,7 +300,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return_message = session + ' ' + sequence + '\0';
 
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username);
+		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
 
 		if(fail_check == -1){
 			close(connectionfd);
@@ -353,6 +370,7 @@ int main(int argc, char** argv){
     socklen_t cli_len = sizeof(cli);
 
     while (1) {
+		cout << "START WHILE" << endl;
         int connectionfd = accept(sock, (struct sockaddr *)&cli, &cli_len); // (struct sockaddr *)&cli, &cli_len
 		if (connectionfd == -1) {
 			cout_lock.lock();

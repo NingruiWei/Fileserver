@@ -15,35 +15,35 @@ Fileserver::Fileserver(){}
 
 Fileserver::~Fileserver(){}
 
-// void Fileserver::lock_on_disk(std::string path, bool shared_lock){
-//     lock_guard<mutex> fs_lock(filerserver_lock);
-//     directory_lock_map[path].lock_uses++;
-//     if(shared_lock){
-//         //If this is a shared lock (meant for reading) we need to do a shared locking function
-//         directory_lock_map[path].lock.lock_shared();
-//     }
-//     else{
-//         //Not a shared lock (meant for writing)
-//          directory_lock_map[path].lock.lock();
-//     }
-// }
+void Fileserver::lock_on_disk(std::string path, bool shared_lock){
+    lock_guard<mutex> fs_lock(fileserver_lock);
+    directory_lock_map[path].lock_uses++;
+    if(shared_lock){
+        //If this is a shared lock (meant for reading) we need to do a shared locking function
+        directory_lock_map[path].lock.lock_shared();
+    }
+    else{
+        //Not a shared lock (meant for writing)
+         directory_lock_map[path].lock.lock();
+    }
+}
 
-// void Fileserver::unlock_on_disk(std::string path, bool shared_lock){
-//     lock_guard<mutex> fs_lock(filerserver_lock);
-//     on_disk_lock *to_unlock = &directory_lock_map[path];
-//     to_unlock->lock_uses--;
+void Fileserver::unlock_on_disk(std::string path, bool shared_lock){
+    lock_guard<mutex> fs_lock(fileserver_lock);
+    on_disk_lock *to_unlock = &directory_lock_map[path];
+    to_unlock->lock_uses--;
     
-//     if(shared_lock){
-//         to_unlock->lock.unlock_shared();
-//     }
-//     else{
-//         to_unlock->lock.unlock();
-//     }
+    if(shared_lock){
+        to_unlock->lock.unlock_shared();
+    }
+    else{
+        to_unlock->lock.unlock();
+    }
 
-//     if(to_unlock->lock_uses == 0){
-//         directory_lock_map.erase(path);
-//     }
-// }
+    if(to_unlock->lock_uses == 0){
+        directory_lock_map.erase(path);
+    }
+}
 
 bool direntry_full(fs_inode* curr){ // passed in should the inode in question
     for(size_t i = 0; i < curr->size; ++i){
@@ -57,7 +57,8 @@ bool Fileserver::blocks_full(){
 }
 
 // adds block to inode passed in and returns the block number. If returns -1, then we dont have space either in the inode or we ran out of blocks.
-int Fileserver::add_block_to_inode(fs_inode* curr){ 
+int Fileserver::add_block_to_inode(fs_inode* curr){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
         return -1;
     }
@@ -128,11 +129,75 @@ bool direntries_full(fs_direntry entries[]){
 }
 // afterwards parent_inode block will be the block of the directory that we're going to insert stuff into, parent_entries block will be the correct entries block, or 0 if one does not exist
 // curr_inode should be the root coming in.
+int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
+ int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entries_index, int& parent_inode_block){
+   //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
+    curr_inode_block = 0;
+    parent_entries_block = 0;
+    parent_inode_block = 0;
 
+    while(parsed_pathname.size() > 1){  
+        for(size_t i = 0; i < curr_inode->size; ++i){
+            disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
+            for(size_t j = 0; j < FS_DIRENTRIES; ++j){
+                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                    parent_inode_block = curr_inode->blocks[i];
+                    goto loop;
+                }
+            }
+        }
+        //matching filename or directory was not found, the pathname was invalid
+        return -1;
+        
+        loop:
+        disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
+        parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
+    }
+        parent_inode->type = curr_inode->type;
+        strcpy(parent_inode->owner, curr_inode->owner);
+        parent_inode->size = curr_inode->size;
+        for(size_t k = 0; k < curr_inode->size; ++k){
+            parent_inode->blocks[k] = curr_inode->blocks[k];
+        }
+    // now always need to go down one more layer
+    for(size_t i = 0; i < curr_inode->size; i++){
+            disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
+            for(size_t j = 0; j < FS_DIRENTRIES; j++){
+                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                    curr_inode_block = curr_entries[j].inode_block;
+                    parent_entries_block = curr_inode->blocks[i];
+                    parent_entries_index = j;
+                    goto end;
+                }
+            }
+    }
+    
+   
+    end:
+    // once we have found the inode we are inserting in we see if there's already space or not in the thing
+   
+
+    //If the inode has no initalized blocks, then we need to make it a new block
+    if(curr_inode->size == 0 || direntries_full(curr_entries)){
+        parent_entries_block = 0;
+    }
+    
+    return 0;
+}
 int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool create){
     //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
     parent_inode_block = 0;
     parent_entries_block = 0;
+
+    // string travelled_path = "/";
+    // bool shared_status = false;
+    // if(create && parsed_pathname.size() - 1 > 0){
+    //     shared_status = true;
+    // }
+    // else if(!create || parsed_pathname.size() > 0){
+    //     shared_status = true;
+    // }
+    // path_lock parent_lock(travelled_path, shared_status, this);
 
     while((!create && parsed_pathname.size() > 0) || parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
         if(curr_inode->type == 'f'){
@@ -155,7 +220,20 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         return -1;
         
         loop:
+        // travelled_path += parsed_pathname.back();
+        // if(parsed_pathname.size() > 1){
+        //     travelled_path += "/";
+        // }
+        // shared_status = false;
+        // if(create && parsed_pathname.size() > 1){
+        //     shared_status = true;
+        // }
+        // else if(!create || parsed_pathname.size() > 1){
+        //     shared_status = true;
+        // }
+        // path_lock child_lock(travelled_path, shared_status, this);
         disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
+        // parent_lock.swap_lock(&child_lock);
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
     }
     if(!create){goto end;}
@@ -180,37 +258,7 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
     return 0;
 }
 
-int Fileserver::traverse_single_file(std::string desired_file, fs_inode* curr_inode, fs_direntry curr_entries[]){
-    int found_inode_block = -1;
-    for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){ //Search for the block which has the file we're interested in
-        if(curr_inode->blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
-            continue;
-        }
-        
-        disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
-        for(size_t j = 0; j < FS_DIRENTRIES; j++){
-            if(strcmp(curr_entries[j].name, desired_file.c_str()) == 0){
-                //Found matching filename, save inode block and break out
-                found_inode_block = curr_entries[j].inode_block;
-                break;
-            }
-        }
 
-        if(found_inode_block != -1){
-            //We already found our inode block, so we can just move onto looking for the next directory.
-            break;
-        }
-    }
-
-    if(found_inode_block == -1){
-        //Unable to find filename/directory name within curr_entries. Error
-        return -1;
-    }
-
-    disk_readblock(found_inode_block, &curr_inode); //Read in the inode we're going to read from
-
-    return 0;
-}
 
 void Fileserver::fill_password_map(){
     std::string username, password;
@@ -230,124 +278,124 @@ void Fileserver::fill_password_map(){
 
 int Fileserver::handle_fs_session(std::string session, std::string sequence, std::string username){
     session_map_entry temp;
-    temp.sequence_num = stoi(sequence); // do we have to dynamically allocate and just store as a pointer? HMMM
+    temp.sequence_num = stoi(sequence); 
     temp.username = username;
     session_map.push_back(temp);
     return session_map.size() - 1;
 }
 
-std::string Fileserver::handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type){
-    vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
+int Fileserver::handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* return_arr){
+    vector<std::string> parsed_pathname; 
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
 
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
-    int temp2, temp1;
+    int parent_inode, parent_entries;
 
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2, false) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, false) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
+        return -1;
     }
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
-
-    std::string return_string;
-
-    if(traverse_single_file(parsed_pathname.front(), &curr_inode, curr_entries) == -1){
-        //Error, could not find desired file/directory. Error
-    }
-
-    for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){
-        if(curr_inode.blocks[i] == 0){ //If the block we're looking at is uninitalized, skip over it
-            continue;
-        }
-        char curr_read[FS_BLOCKSIZE];
-        disk_readblock(curr_inode.blocks[i], curr_read); //Read in the current blocks direntries
-        return_string += std::string(curr_read, FS_BLOCKSIZE);
-    }
-
-    return return_string;
+    size_t block = stoi(block_or_type);
+    if(block >= curr_inode.size){ return -1;}
+    int read_block = curr_inode.blocks[block];
+    disk_readblock(read_block, return_arr);
+    return 0;
 }
 
-void Fileserver::handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data){
+int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data){
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
     string remain = parsed_pathname.front();
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
-
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int parent_inode_block = 0, parent_entries_block;
     if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
     }
-    //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
-    //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
-    // after traverse pathname we want parent_entries
-    // we're one short always
+   
     
 
     // we always need to add a new block to blocks
-    disk_readblock(parent_inode_block, &curr_inode);
-    int new_block = add_block_to_inode(&curr_inode);
-
-    disk_writeblock(new_block, data);
-    disk_writeblock(parent_inode_block, &curr_inode);
-   
+    size_t block = stoi(block_or_type);
+    int write_to_block;
+    if(block > curr_inode.size){return -1;}
+    else if(block == curr_inode.size){
+        write_to_block = add_block_to_inode(&curr_inode);
+        disk_writeblock(write_to_block, data);
+        disk_writeblock(parent_inode_block, &curr_inode);
+        }
+    else{
+        write_to_block = curr_inode.blocks[block];
+        disk_writeblock(write_to_block, data);
+    }
+    return 0;
    
 }
+bool no_entries(fs_direntry* curr){
+    for(size_t i = 0; i < FS_DIRENTRIES; ++i){
+        if(curr[i].inode_block != 0){
+            return false;
+        }
+    }
+    return true;
+}
 
-void Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
+int Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
-    fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
+    fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
     
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
+    int curr_inode_block = 0, parent_entries = 0, parent_entries_index = -1, parent_node_block;
 
-    int temp1, temp2;
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2, true) == -1){
-        //travesal failed due to an invalid pathname, tell listen to close connection
-    }
-    //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
-    //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
+    traverse_pathname_delete(parsed_pathname, &curr_inode, curr_entries, curr_inode_block, parent_entries, &parent_inode, parent_entries_index, parent_node_block);
+    disk_readblock(curr_inode_block, &curr_inode);
 
-    fs_direntry prior_entries[FS_DIRENTRIES];
-
-    for(size_t i = 0; i < FS_DIRENTRIES; i++){
-        prior_entries[i] = curr_entries[i];
-    }
-
-   
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, temp1, temp2, true) == -1){
-        //Error, could not find desired file/directory. Error
-    }
-
-    //If the inode we're deleting is a directory, it is not allowed to have any subdirectories or files inside of it
-    if(curr_inode.type == 'd'){
-        for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){
-            if(curr_inode.blocks[i] != 0){
-                //Error, there was something within the directory
-            }
+    // ok so we parent_entries_index is the index in parent_entries
+    // parent_entries is the block number of the direntry table
+    // we want
+    // curr_inode is the inode in block "curr_inode_block"
+    if(curr_inode.type == 'f'){
+        for(size_t i = 0; i < curr_inode.size; ++i){
+            available_blocks.push(curr_inode.blocks[i]);
         }
     }
-    else{ //We need to return all of the blocks that file was using to store its data
-        for(size_t i = 0; i < FS_MAXFILEBLOCKS; i++){
-            if(curr_inode.blocks[i] == 0){
-                //Block is uninitalized, skip over it
-                continue;
-            }
-            //Push back the block of data the file was using to store information
-        }
+    else if(curr_inode.size > 0){
+        return -1;
     }
+    available_blocks.push(curr_inode_block);
+    // after this we have freed up the blocks at the very end eg. paul/klee, the klee block would be freed up now
 
-    //Delete the inode we were told to and write the change back to the directories above it and its accompanying inode
+    curr_entries[parent_entries_index].inode_block = 0; // this should clear it
+
+    if(no_entries(curr_entries)){ // if curr_entries is empty we then free up the whole block it's in since it's useless now
+        available_blocks.push(parent_entries);
+        //disk_readblock(parent_inode_block, )
+        for(size_t i = 0; i < parent_inode.size; ++i){
+            if(parent_inode.blocks[i] == parent_entries){
+                for(size_t j = i; j < parent_inode.size - 1; ++j){
+                    parent_inode.blocks[j] = parent_inode.blocks[j + 1];
+                }
+                disk_writeblock(parent_node_block, parent_inode);
+                goto: end;
+            }
+        }
+        --parent_inode.size;
+    }
+   end:
+   return 0;
 
 }
 
-void Fileserver::handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type){
+int Fileserver::handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type){
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
 
@@ -382,8 +430,10 @@ void Fileserver::handle_fs_create(std::string session, std::string sequence, std
     //Create new inode and direntry for the file/directory we're creating
     fs_inode temp = create_inode(type, session_map[stoi(session)].username);
     fs_direntry temp_entry;
+    fileserver_lock.lock();
     temp_entry.inode_block = available_blocks.top();
     available_blocks.pop();
+    fileserver_lock.unlock();
     const char * remaining_path = parsed_pathname.back().c_str();
     strcpy(temp_entry.name, remaining_path);
 
@@ -399,7 +449,7 @@ void Fileserver::handle_fs_create(std::string session, std::string sequence, std
     if(curr_entries_full){
         disk_writeblock(parent_inode_block, &curr_inode); //Change curr_inode to acknowledge change to curr_inode
     }
-
+    return 0;
 }
 
 // search_map returns true if query is already an username in the map
