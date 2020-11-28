@@ -276,6 +276,10 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
 
     while((parsed_pathname.size() > 0)){ //While we still have more than just the new directory/file we're interest in creating
         
+        if(curr_inode->type == 'f'){
+            //File should only ever be the last thing along the path, if it's not it should be an error. Double check this assumption
+            return -1;
+        }
         for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
