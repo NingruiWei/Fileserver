@@ -56,7 +56,7 @@ class Fileserver{
 
         int traverse_pathname_create(vector<std::string> &parsed_pathname, fs_inode* curr_inode,
         fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block);
-        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block);
+        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool fs_read);
         void lock_on_disk(std::string path, bool shared_lock);
         void unlock_on_disk(std::string path, bool shared_lock);
         int add_block_to_inode(fs_inode* curr);
