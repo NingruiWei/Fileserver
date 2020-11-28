@@ -237,7 +237,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
         cout << "INSIDE FS_READBLOCK LINE 225" << endl;
 		cout_lock.unlock();
 		char read_data[FS_BLOCKSIZE];
-		main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type, read_data);
+		if(main_fileserver.handle_fs_readblock(session, sequence, pathname, block_or_type, read_data) == -1){
+			close(connectionfd);
+			return -1;
+		}
 		string data_string = string(read_data, 512);
 		return_message = session + ' ' + sequence + '\0' + data_string;
 		int fail_check = 0;
@@ -266,7 +269,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		cout << data << endl;
 		cout_lock.unlock();
 
-		main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type, data);
+		if(main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type, data) == -1){
+			close(connectionfd);
+			return -1;
+		}
 		return_message = session + ' ' + sequence + '\0';
 
 		int fail_check = 0;
@@ -280,7 +286,11 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_CREATE"){
-		main_fileserver.handle_fs_create(session, sequence, pathname, block_or_type);
+		
+		if(main_fileserver.handle_fs_create(session, sequence, pathname, block_or_type) == -1){
+			close(connectionfd);
+			return -1;
+		};
 
 		return_message = session + ' ' + sequence + '\0';
 
@@ -295,7 +305,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_DELETE"){
-		main_fileserver.handle_fs_delete(session, sequence, pathname);
+		if(main_fileserver.handle_fs_delete(session, sequence, pathname) == -1){
+			close(connectionfd);
+			return -1;
+		}
 
 		return_message = session + ' ' + sequence + '\0';
 
@@ -380,8 +393,8 @@ int main(int argc, char** argv){
 		}
 
 		thread t1(handle_connection, connectionfd);
-		//t1.join();// Only for single threading testing
-		t1.detach();
+		t1.join();// Only for single threading testing
+		//t1.detach();
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();

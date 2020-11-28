@@ -178,14 +178,11 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
    
 
     //If the inode has no initalized blocks, then we need to make it a new block
-    if(curr_inode->size == 0 || direntries_full(curr_entries)){
-        parent_entries_block = 0;
-    }
     
     return 0;
 }
-int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool create){
-    //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
+int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, fs_inode* curr_inode,
+             fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block){
     parent_inode_block = 0;
     parent_entries_block = 0;
 
@@ -199,7 +196,7 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
     // }
     // path_lock parent_lock(travelled_path, shared_status, this);
 
-    while((!create && parsed_pathname.size() > 0) || parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
+    while(parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
         if(curr_inode->type == 'f'){
             //File should only ever be the last thing along the path, if it's not it should be an error. Double check this assumption
             return -1;
@@ -236,16 +233,20 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         // parent_lock.swap_lock(&child_lock);
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
     }
-    if(!create){goto end;}
     
     // once we have found the inode we are inserting in we see if there's already space or not in the thing
+    bool found = false;
     for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
-                if(curr_entries[j].inode_block == 0){
+
+                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                    return -1;
+                }
+                else if(!found && curr_entries[j].inode_block == 0){
                     //Found matching filename, save inode block and break out
                     parent_entries_block = curr_inode->blocks[i];
-                    goto end;
+                    
                 }
             }
         }
@@ -254,7 +255,57 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
     if(curr_inode->size == 0 || direntries_full(curr_entries)){
         parent_entries_block = 0;
     }
-    end:
+    
+    return 0;
+}
+int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, 
+            fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block){
+    //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
+    parent_inode_block = 0;
+    parent_entries_block = 0;
+
+    // string travelled_path = "/";
+    // bool shared_status = false;
+    // if(create && parsed_pathname.size() - 1 > 0){
+    //     shared_status = true;
+    // }
+    // else if(!create || parsed_pathname.size() > 0){
+    //     shared_status = true;
+    // }
+    // path_lock parent_lock(travelled_path, shared_status, this);
+
+    while((parsed_pathname.size() > 0)){ //While we still have more than just the new directory/file we're interest in creating
+        
+        for(size_t i = 0; i < curr_inode->size; i++){
+            disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
+            for(size_t j = 0; j < FS_DIRENTRIES; j++){
+                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                    parent_inode_block = curr_entries[j].inode_block;
+                    goto loop;
+                }
+            }
+        }
+        //matching filename or directory was not found, the pathname was invalid
+        return -1;
+        
+        loop:
+        // travelled_path += parsed_pathname.back();
+        // if(parsed_pathname.size() > 1){
+        //     travelled_path += "/";
+        // }
+        // shared_status = false;
+        // if(create && parsed_pathname.size() > 1){
+        //     shared_status = true;
+        // }
+        // else if(!create || parsed_pathname.size() > 1){
+        //     shared_status = true;
+        // }
+        // path_lock child_lock(travelled_path, shared_status, this);
+        disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
+        // parent_lock.swap_lock(&child_lock);
+        parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
+    }
+    
     return 0;
 }
 
@@ -294,7 +345,7 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int parent_inode, parent_entries;
 
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, false) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
@@ -315,7 +366,7 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     disk_readblock(0, &curr_inode);
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int parent_inode_block = 0, parent_entries_block;
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
     }
    
@@ -375,20 +426,23 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     // after this we have freed up the blocks at the very end eg. paul/klee, the klee block would be freed up now
 
     curr_entries[parent_entries_index].inode_block = 0; // this should clear it
-
     if(no_entries(curr_entries)){ // if curr_entries is empty we then free up the whole block it's in since it's useless now
         available_blocks.push(parent_entries);
         //disk_readblock(parent_inode_block, )
         for(size_t i = 0; i < parent_inode.size; ++i){
-            if(parent_inode.blocks[i] == parent_entries){
+            if((int) parent_inode.blocks[i] == parent_entries){
                 for(size_t j = i; j < parent_inode.size - 1; ++j){
                     parent_inode.blocks[j] = parent_inode.blocks[j + 1];
                 }
-                disk_writeblock(parent_node_block, parent_inode);
-                goto: end;
+                --parent_inode.size;
+                disk_writeblock(parent_node_block, &parent_inode);
+                goto end;
             }
         }
-        --parent_inode.size;
+        
+    }
+    else{
+        disk_writeblock(parent_entries, curr_entries);
     }
    end:
    return 0;
@@ -409,8 +463,8 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     }
     int parent_inode_block = 0, parent_entries_block = 0;
     
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, true) == -1){
-        //Invalid pathname, ERROR
+    if(traverse_pathname_create(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block) == -1){
+        return -1;
     }
     // if no room currently to add new direntry
 
