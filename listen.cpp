@@ -386,8 +386,8 @@ int main(int argc, char** argv){
 		}
 
 		thread t1(handle_connection, connectionfd);
-		t1.join();// Only for single threading testing
-		//t1.detach();
+		//t1.join();// Only for single threading testing
+		t1.detach();
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();
