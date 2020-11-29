@@ -422,6 +422,9 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
         return -1;
     }
     disk_readblock(curr_inode_block, &curr_inode);
+    if(strcmp(curr_inode.owner, username.c_str()) != 0){
+        return -1;
+    }
 
     // ok so we parent_entries_index is the index in parent_entries
     // parent_entries is the block number of the direntry table
@@ -528,8 +531,12 @@ string Fileserver::query_map(std::string query){
     return password_map[query];
 }
 
-int Fileserver::query_session_map(int session){
+int Fileserver::query_session_map_sequence(int session){
     return session_map[session].sequence_num;
+}
+
+string Fileserver::query_session_map_username(int session){
+    return session_map[session].username;
 }
 
 int Fileserver::valid_session_range(){
