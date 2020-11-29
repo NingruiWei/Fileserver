@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     fs_create("user1", "password1", session, seq++, "/mormon", 'd');
     fs_create("user1", "password1", session, seq++, "/superman", 'd');
     fs_delete("user1", "password1", session, seq++, "/klee");
+    //fs_create("user1", "password1", session, seq++, "/superman", 'd');
     fs_create("user1", "password1", session, seq++, "/qiqi", 'd');
     return 0;
 }

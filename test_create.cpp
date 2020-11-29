@@ -22,12 +22,15 @@ int main(int argc, char *argv[])
     }
     server = argv[1];
     server_port = atoi(argv[2]);
-
+    unsigned int session1, seq1 = 0;
     cout << "reaching here" << endl;
     fs_clientinit(server, server_port);
     cout << "clientinit finished" << endl;
     fs_session("user1", "password1", &session, seq++);
+    fs_session("user2", "password2", &session1, seq1++);
     fs_create("user1", "password1", session, seq++, "/zeus", 'd');
+    fs_create("user1", "password1", session, seq++, "/zeus", 'd');
+    fs_create("user2", "password2", session1, seq1++, "/zeus/peeepee", 'd');
     fs_create("user1", "password1", session, seq++, "/paul", 'd');
     fs_create("user1", "password1", session, seq++, "/paul/klee", 'd');
     fs_create("user2", "password2", session, seq++, "/paul/klee/jean", 'd');
@@ -43,6 +46,8 @@ int main(int argc, char *argv[])
     fs_create("user1", "password1", session, seq++, "/jake7", 'd');
     fs_create("user1", "password1", session, seq++, "/jake7/paul", 'd');
     fs_create("user1", "password1", session, seq++, "/paul/klee/jean/jarjar", 'd');
+    fs_create("user1", "password1", session, seq++, "/zeus", 'd');
+    fs_create("user1", "password1", session, seq++, "/paul/klee/kappa", 'd');
     
     // fs_create("user1", "password1", session, seq++, "/paul/lion", 'd');
     // fs_create("user1", "password1", session, seq++, "/paul/lion/jira", 'f');

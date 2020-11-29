@@ -52,11 +52,12 @@ class Fileserver{
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
         int traverse_pathname_delete(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
-                                    int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entry_index, int& parent_inode_block);
+                                    int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entry_index, int& parent_inode_block, string username);
 
         int traverse_pathname_create(vector<std::string> &parsed_pathname, fs_inode* curr_inode,
-        fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block);
-        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool fs_read);
+        fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, string username);
+        int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
+                             int &parent_inode_block, int &parent_entries_block, bool fs_read, string username);
         void lock_on_disk(std::string path, bool shared_lock);
         void unlock_on_disk(std::string path, bool shared_lock);
         int add_block_to_inode(fs_inode* curr);
