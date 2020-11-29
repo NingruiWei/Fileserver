@@ -422,6 +422,9 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
         return -1;
     }
     disk_readblock(curr_inode_block, &curr_inode);
+    if(strcmp(curr_inode.owner, username.c_str()) != 0){
+        return -1;
+    }
 
     // ok so we parent_entries_index is the index in parent_entries
     // parent_entries is the block number of the direntry table
