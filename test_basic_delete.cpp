@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     fs_session("user2", "password2", &other_session, other_seq++);
     fs_create("user1", "password1", session, seq++, "/zeus", 'd');
     fs_create("user1", "password1", session, seq++, "/paul", 'f');
+    fs_delete("user2", "password2", session, other_seq++, "/paul");
     fs_delete("user2", "password2", other_session, other_seq++, "/paul");
     fs_writeblock("user2", "password2", other_session, other_seq++, "/zeus", 0, writedata);
     fs_readblock("user2", "password2", other_session, other_seq++, "/zeus", 0, readdata);

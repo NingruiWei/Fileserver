@@ -531,8 +531,12 @@ string Fileserver::query_map(std::string query){
     return password_map[query];
 }
 
-int Fileserver::query_session_map(int session){
+int Fileserver::query_session_map_sequence(int session){
     return session_map[session].sequence_num;
+}
+
+string Fileserver::query_session_map_username(int session){
+    return session_map[session].username;
 }
 
 int Fileserver::valid_session_range(){
