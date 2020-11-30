@@ -13,6 +13,7 @@
 #include <shared_mutex>
 #include <mutex>
 #include <algorithm>
+#include <unordered_set>
 using namespace std;
 
 
@@ -29,7 +30,7 @@ struct on_disk_lock{
 class Fileserver{
     private:
         vector<session_map_entry> session_map;
-        priority_queue<size_t, vector<size_t>, greater<size_t> > available_blocks;
+        unordered_set<size_t> available_blocks;
         unordered_map<std::string, std::string> password_map;
         unordered_map<std::string, on_disk_lock> directory_lock_map;
         mutex fileserver_lock;

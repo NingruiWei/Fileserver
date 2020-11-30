@@ -29,10 +29,6 @@ bool check_fs(string original){
 	stringstream ss(original);
 	ss >> name >> session >> sequence;
 
-	// cout_lock.lock();
-	// cout << "decrypted message " << name << " " << session << " " << sequence << endl;
-	// cout_lock.unlock();
-
 	if(name != "FS_SESSION" && stoi(session) > main_fileserver.valid_session_range()){
 		cout_lock.lock();
 		cout << "Session number is invalid" << endl;
@@ -129,10 +125,8 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		encrypted_cstr[i] = encrypted[i];
 	}
 	encrypted_cstr[size_encrypted - 1] = ']';
-	//cout << encrypted_cstr[size_encrypted - 1] << endl;
 
 	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted_cstr, size_encrypted, decrypted_msg);
-	// cout << "DECRYPTION: " << decryption << endl;
 
 	if (decryption == -1) {
 		cout_lock.lock();
@@ -215,10 +209,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
 	string return_message;
-	cout_lock.lock();
-	cout << string(decrypted_msg) << endl;
-	cout << "request message is " << request_message << endl;
-	cout_lock.unlock();
+
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
 		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
@@ -258,16 +249,8 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		size_t specified_size = decrypted_len;
 		auto header_len = strnlen(decrypted_msg, specified_size); // must check if header size is valid later on
 		auto data_len = specified_size - header_len - 1;
-		cout_lock.lock();
-		cout << "DATA_LEN = " << data_len << endl;
-		cout << "HEADER_LEN = " << header_len << endl;
-		cout << "specified_size = " << specified_size << endl;
-		cout_lock.unlock();
 		char data[FS_BLOCKSIZE];
 		memcpy(data, decrypted_msg + header_len + 1, data_len); // eventually if replace FS_BLOCKSIZE with the size of data actually passed in for error checking
-		cout_lock.lock();
-		cout << data << endl;
-		cout_lock.unlock();
 
 		if(main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type, data) == -1){
 			close(connectionfd);
@@ -383,7 +366,6 @@ int main(int argc, char** argv){
     socklen_t cli_len = sizeof(cli);
 
     while (1) {
-		cout << "START WHILE" << endl;
         int connectionfd = accept(sock, (struct sockaddr *)&cli, &cli_len); // (struct sockaddr *)&cli, &cli_len
 		if (connectionfd == -1) {
 			cout_lock.lock();

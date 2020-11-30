@@ -10,6 +10,7 @@
 #include <algorithm>
 using namespace std;
 
+extern mutex cout_lock;
 
 Fileserver::Fileserver(){}
 
@@ -67,10 +68,10 @@ int Fileserver::add_block_to_inode(fs_inode* curr){
     if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
         return -1;
     }
-
-    curr->blocks[curr->size] = available_blocks.top();
+    auto it = 
+    curr->blocks[curr->size] = *(available_blocks.begin());
     curr->size++;
-    available_blocks.pop();
+    available_blocks.erase(available_blocks.begin());
 
     // curr_entries[0].inode_block = curr->blocks[curr->size - 1];
     // strcpy(curr_entries[0].name, filename.c_str());
@@ -320,13 +321,16 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
 
 
 void Fileserver::fill_password_map(){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     std::string username, password;
     while(cin >> username >> password){
         if(password_map.find(username) == password_map.end()){
             password_map[username] = password;
         }
         else{
+            cout_lock.lock();
             cout << "insertion to map assertion error";
+            cout_lock.unlock();
             assert(false);
         }
 
@@ -336,6 +340,7 @@ void Fileserver::fill_password_map(){
 } // fill_password_map
 
 int Fileserver::handle_fs_session(std::string session, std::string sequence, std::string username){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     session_map_entry temp;
     temp.sequence_num = stoi(sequence); 
     temp.username = username;
@@ -430,28 +435,26 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     // parent_entries is the block number of the direntry table
     // we want
     // curr_inode is the inode in block "curr_inode_block"
+    lock_guard<mutex> fs_lock(fileserver_lock);
     if(curr_inode.type == 'f'){
         for(size_t i = 0; i < curr_inode.size; ++i){
-            available_blocks.push(curr_inode.blocks[i]);
+            available_blocks.insert(curr_inode.blocks[i]);
         }
     }
     else if(curr_inode.size > 0){
         return -1;
     }
-    available_blocks.push(curr_inode_block);
+    available_blocks.insert(curr_inode_block);
     // after this we have freed up the blocks at the very end eg. paul/klee, the klee block would be freed up now
 
     curr_entries[parent_entries_index].inode_block = 0; // this should clear it
     if(no_entries(curr_entries)){ // if curr_entries is empty we then free up the whole block it's in since it's useless now
-        available_blocks.push(parent_entries);
+        available_blocks.insert(parent_entries);
         //disk_readblock(parent_inode_block, )
         for(size_t i = 0; i < parent_inode.size; ++i){
             if((int) parent_inode.blocks[i] == parent_entries){
                 for(size_t j = i; j < parent_inode.size - 1; ++j){
-                    parent_inode.blocks[j] = parent_inode.blocks[j + 1];
-                }
                 --parent_inode.size;
-                disk_writeblock(parent_node_block, &parent_inode);
                 goto end;
             }
         }
@@ -501,8 +504,8 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     fs_inode temp = create_inode(type, username);
     fs_direntry temp_entry;
     fileserver_lock.lock();
-    temp_entry.inode_block = available_blocks.top();
-    available_blocks.pop();
+    temp_entry.inode_block = *available_blocks.begin();
+    available_blocks.erase(available_blocks.begin());
     fileserver_lock.unlock();
     const char * remaining_path = parsed_pathname.back().c_str();
     strcpy(temp_entry.name, remaining_path);
@@ -541,8 +544,9 @@ int Fileserver::valid_session_range(){
 
 void Fileserver::init_fs() {
     //available_blocks.resize(FS_MAXFILEBLOCKS);
+    fileserver_lock.lock();
     for(size_t i = 1; i < FS_MAXFILEBLOCKS; ++i){
-        available_blocks.push(i);
+        available_blocks.insert(i);
     }
     fs_inode root_inode;
     disk_readblock(0, &root_inode);
@@ -550,9 +554,12 @@ void Fileserver::init_fs() {
     if (root_inode.size > 0) {
         for (size_t i = 0; i < root_inode.size; i++) {
             // push to free_data_blocks vector/array for fileserver
+            cout_lock.lock();
             cout << root_inode.blocks[i] << endl;
+            cout_lock.unlock();
         }
     }
+    fileserver_lock.lock();
 }
 
 // - reads into entries array the directory at dir_inode[i]
