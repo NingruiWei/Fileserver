@@ -1,0 +1,88 @@
+/ (type d) (inode block 0)
+        owner: 
+        size: 2
+        data disk blocks: 4095 4080 
+        entry 0: zeus, inode block 4094
+        entry 1: paul, inode block 4092
+        entry 2: jake, inode block 4086
+        entry 3: jake1, inode block 4085
+        entry 4: jake2, inode block 4084
+        entry 5: jake3, inode block 4083
+        entry 6: jake4, inode block 4082
+        entry 7: jake5, inode block 4081
+        entry 8: jake6, inode block 4079
+        entry 9: jake7, inode block 4077
+
+/zeus (type f) (inode block 4094)
+        owner: user1
+        size: 1
+        data disk blocks: 4093 
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+
+/paul (type d) (inode block 4092)
+        owner: user1
+        size: 1
+        data disk blocks: 4091 
+        entry 0: klee, inode block 4090
+
+/paul/klee (type d) (inode block 4090)
+        owner: user1
+        size: 1
+        data disk blocks: 4089 
+        entry 0: kappa, inode block 4088
+
+/paul/klee/kappa (type f) (inode block 4088)
+        owner: user1
+        size: 1
+        data disk blocks: 4087 
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+
+/jake (type d) (inode block 4086)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake1 (type d) (inode block 4085)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake2 (type d) (inode block 4084)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake3 (type d) (inode block 4083)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake4 (type d) (inode block 4082)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake5 (type d) (inode block 4081)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake6 (type f) (inode block 4079)
+        owner: user1
+        size: 1
+        data disk blocks: 4078 
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+
+/jake7 (type d) (inode block 4077)
+        owner: user1
+        size: 1
+        data disk blocks: 4076 
+        entry 0: paul, inode block 4075
+
+/jake7/paul (type f) (inode block 4075)
+        owner: user1
+        size: 1
+        data disk blocks: 4074 
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+
+4073 disk blocks free

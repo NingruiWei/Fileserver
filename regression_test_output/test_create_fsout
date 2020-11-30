@@ -1,0 +1,394 @@
+@@@ #1 disk_readblock: block 0
+
+@@@ port 8000
+START WHILE
+main doing stuff
+START WHILE
+New connection 5
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #2 send 5 3 33
+
+@@@ #3 send 5 33 NO_ENCRYPT[password1      ][0 0]
+
+@@@ #4 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #5 send 6 3 33
+
+@@@ #6 send 6 33 NO_ENCRYPT[password2      ][1 0]
+
+@@@ #7 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 1 /zeus d
+request message is FS_CREATE
+
+@@@ #8 disk_readblock: block 0
+
+@@@ #9 disk_writeblock: block 4094
+
+@@@ #10 disk_writeblock: block 4095
+
+@@@ #11 disk_writeblock: block 0
+
+@@@ #12 send 5 3 33
+
+@@@ #13 send 5 33 NO_ENCRYPT[password1      ][0 1]
+
+@@@ #14 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 2 /zeus d
+request message is FS_CREATE
+
+@@@ #15 disk_readblock: block 0
+
+@@@ #16 disk_readblock: block 4095
+
+@@@ #17 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 1 1 /zeus/peeepee d
+request message is FS_CREATE
+
+@@@ #18 disk_readblock: block 0
+
+@@@ #19 disk_readblock: block 4095
+
+@@@ #20 disk_readblock: block 4094
+
+@@@ #21 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 3 /paul d
+request message is FS_CREATE
+
+@@@ #22 disk_readblock: block 0
+
+@@@ #23 disk_readblock: block 4095
+
+@@@ #24 disk_writeblock: block 4093
+
+@@@ #25 disk_writeblock: block 4095
+
+@@@ #26 send 6 3 33
+
+@@@ #27 send 6 33 NO_ENCRYPT[password1      ][0 3]
+
+@@@ #28 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 4 /paul/klee d
+request message is FS_CREATE
+
+@@@ #29 disk_readblock: block 0
+
+@@@ #30 disk_readblock: block 4095
+
+@@@ #31 disk_readblock: block 4093
+
+@@@ #32 disk_writeblock: block 4091
+
+@@@ #33 disk_writeblock: block 4092
+
+@@@ #34 disk_writeblock: block 4093
+
+@@@ #35 send 5 3 33
+
+@@@ #36 send 5 33 NO_ENCRYPT[password1      ][0 4]
+
+@@@ #37 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 5 /paul/klee/jean d
+request message is FS_CREATE
+
+@@@ #38 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 6 /paul/klee/kappa d
+request message is FS_CREATE
+
+@@@ #39 disk_readblock: block 0
+
+@@@ #40 disk_readblock: block 4095
+
+@@@ #41 disk_readblock: block 4093
+
+@@@ #42 disk_readblock: block 4092
+
+@@@ #43 disk_readblock: block 4091
+
+@@@ #44 disk_writeblock: block 4089
+
+@@@ #45 disk_writeblock: block 4090
+
+@@@ #46 disk_writeblock: block 4091
+
+@@@ #47 send 5 3 33
+
+@@@ #48 send 5 33 NO_ENCRYPT[password1      ][0 6]
+
+@@@ #49 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 7 /paul/klee/jean/kappa d
+request message is FS_CREATE
+
+@@@ #50 disk_readblock: block 0
+
+@@@ #51 disk_readblock: block 4095
+
+@@@ #52 disk_readblock: block 4093
+
+@@@ #53 disk_readblock: block 4092
+
+@@@ #54 disk_readblock: block 4091
+
+@@@ #55 disk_readblock: block 4090
+
+@@@ #56 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 8 /jake d
+request message is FS_CREATE
+
+@@@ #57 disk_readblock: block 0
+
+@@@ #58 disk_readblock: block 4095
+
+@@@ #59 disk_writeblock: block 4088
+
+@@@ #60 disk_writeblock: block 4095
+
+@@@ #61 send 5 3 33
+
+@@@ #62 send 5 33 NO_ENCRYPT[password1      ][0 8]
+
+@@@ #63 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 9 /jake1 d
+request message is FS_CREATE
+
+@@@ #64 disk_readblock: block 0
+
+@@@ #65 disk_readblock: block 4095
+
+@@@ #66 disk_writeblock: block 4087
+
+@@@ #67 disk_writeblock: block 4095
+
+@@@ #68 send 6 3 33
+
+@@@ #69 send 6 33 NO_ENCRYPT[password1      ][0 9]
+
+@@@ #70 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 10 /jake2 d
+request message is FS_CREATE
+
+@@@ #71 disk_readblock: block 0
+
+@@@ #72 disk_readblock: block 4095
+
+@@@ #73 disk_writeblock: block 4086
+
+@@@ #74 disk_writeblock: block 4095
+
+@@@ #75 send 5 3 34
+
+@@@ #76 send 5 34 NO_ENCRYPT[password1      ][0 10]
+
+@@@ #77 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 11 /jake3 d
+request message is FS_CREATE
+
+@@@ #78 disk_readblock: block 0
+
+@@@ #79 disk_readblock: block 4095
+
+@@@ #80 disk_writeblock: block 4085
+
+@@@ #81 disk_writeblock: block 4095
+
+@@@ #82 send 6 3 34
+
+@@@ #83 send 6 34 NO_ENCRYPT[password1      ][0 11]
+
+@@@ #84 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 12 /jake4 d
+request message is FS_CREATE
+
+@@@ #85 disk_readblock: block 0
+
+@@@ #86 disk_readblock: block 4095
+
+@@@ #87 disk_writeblock: block 4084
+
+@@@ #88 disk_writeblock: block 4095
+
+@@@ #89 send 5 3 34
+
+@@@ #90 send 5 34 NO_ENCRYPT[password1      ][0 12]
+
+@@@ #91 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 13 /jake5 d
+request message is FS_CREATE
+
+@@@ #92 disk_readblock: block 0
+
+@@@ #93 disk_readblock: block 4095
+
+@@@ #94 disk_writeblock: block 4083
+
+@@@ #95 disk_writeblock: block 4095
+
+@@@ #96 send 6 3 34
+
+@@@ #97 send 6 34 NO_ENCRYPT[password1      ][0 13]
+
+@@@ #98 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 14 /jake6 d
+request message is FS_CREATE
+
+@@@ #99 disk_readblock: block 0
+
+@@@ #100 disk_readblock: block 4095
+
+@@@ #101 disk_writeblock: block 4081
+
+@@@ #102 disk_writeblock: block 4082
+
+@@@ #103 disk_writeblock: block 0
+
+@@@ #104 send 5 3 34
+
+@@@ #105 send 5 34 NO_ENCRYPT[password1      ][0 14]
+
+@@@ #106 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 15 /jake7 d
+request message is FS_CREATE
+
+@@@ #107 disk_readblock: block 0
+
+@@@ #108 disk_readblock: block 4095
+
+@@@ #109 disk_readblock: block 4082
+
+@@@ #110 disk_writeblock: block 4080
+
+@@@ #111 disk_writeblock: block 4082
+
+@@@ #112 send 6 3 34
+
+@@@ #113 send 6 34 NO_ENCRYPT[password1      ][0 15]
+
+@@@ #114 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 16 /jake7/paul d
+request message is FS_CREATE
+
+@@@ #115 disk_readblock: block 0
+
+@@@ #116 disk_readblock: block 4095
+
+@@@ #117 disk_readblock: block 4082
+
+@@@ #118 disk_readblock: block 4080
+
+@@@ #119 disk_writeblock: block 4078
+
+@@@ #120 disk_writeblock: block 4079
+
+@@@ #121 disk_writeblock: block 4080
+
+@@@ #122 send 5 3 34
+
+@@@ #123 send 5 34 NO_ENCRYPT[password1      ][0 16]
+
+@@@ #124 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 17 /paul/klee/jean/jarjar d
+request message is FS_CREATE
+
+@@@ #125 disk_readblock: block 0
+
+@@@ #126 disk_readblock: block 4095
+
+@@@ #127 disk_readblock: block 4093
+
+@@@ #128 disk_readblock: block 4092
+
+@@@ #129 disk_readblock: block 4091
+
+@@@ #130 disk_readblock: block 4090
+
+@@@ #131 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 18 /zeus d
+request message is FS_CREATE
+
+@@@ #132 disk_readblock: block 0
+
+@@@ #133 disk_readblock: block 4095
+
+@@@ #134 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 19 /paul/klee/kappa d
+request message is FS_CREATE
+
+@@@ #135 disk_readblock: block 0
+
+@@@ #136 disk_readblock: block 4095
+
+@@@ #137 disk_readblock: block 4093
+
+@@@ #138 disk_readblock: block 4092
+
+@@@ #139 disk_readblock: block 4091
+
+@@@ #140 disk_readblock: block 4090
+
+@@@ #141 close 6

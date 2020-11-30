@@ -1,0 +1,60 @@
+/ (type d) (inode block 0)
+        owner: 
+        size: 2
+        data disk blocks: 4095 4086 
+        entry 0: zeus, inode block 4094
+        entry 1: paul, inode block 4093
+        entry 2: victor, inode block 4092
+        entry 3: john, inode block 4091
+        entry 4: alamo, inode block 4090
+        entry 5: jesus, inode block 4089
+        entry 6: qiqi, inode block 4088
+        entry 7: mormon, inode block 4087
+        entry 8: superman, inode block 4085
+
+/zeus (type d) (inode block 4094)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/paul (type d) (inode block 4093)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/victor (type d) (inode block 4092)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/john (type d) (inode block 4091)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/alamo (type d) (inode block 4090)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jesus (type d) (inode block 4089)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/qiqi (type d) (inode block 4088)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/mormon (type d) (inode block 4087)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/superman (type d) (inode block 4085)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+4084 disk blocks free
