@@ -210,7 +210,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	cout << string(decrypted_msg) << endl;
 	cout << "request message is " << request_message << endl;
 	cout_lock.unlock();
-
+	
 	if(request_message != "FS_SESSION" && (main_fileserver.query_session_map_username(stoi(session)) != username)){
 		close(connectionfd);
 		return -1;

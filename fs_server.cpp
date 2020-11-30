@@ -454,12 +454,15 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
         for(size_t i = 0; i < parent_inode.size; ++i){
             if((int) parent_inode.blocks[i] == parent_entries){
                 for(size_t j = i; j < parent_inode.size - 1; ++j){
-                    --parent_inode.size;
+                    parent_inode.blocks[j] = parent_inode.blocks[j + 1];
+                }// inside for
+                --parent_inode.size;
+                disk_writeblock(parent_node_block, &parent_inode);
                     goto end;
-                }
-            }
+            } // if 
         }
     }
+    
     else{
         disk_writeblock(parent_entries, curr_entries);
     }
