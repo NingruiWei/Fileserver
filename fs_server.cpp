@@ -416,7 +416,9 @@ bool no_entries(fs_direntry* curr){
 int Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
-
+    if(pathname == "/jared"){
+        cout << "hi";
+    }
     fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
     
