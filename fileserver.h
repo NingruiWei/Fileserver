@@ -47,7 +47,8 @@ class Fileserver{
         void fill_password_map();
         bool username_in_map(std::string query);
         std::string query_map(std::string query);
-        int query_session_map(int session);
+        int query_session_map_sequence(int session);
+        string query_session_map_username(int session);
         int valid_session_range();
         fs_inode get_curr_inode();
         void init_fs();

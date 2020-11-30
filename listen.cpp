@@ -29,6 +29,10 @@ bool check_fs(string original){
 	stringstream ss(original);
 	ss >> name >> session >> sequence;
 
+	// cout_lock.lock();
+	// cout << "decrypted message " << name << " " << session << " " << sequence << endl;
+	// cout_lock.unlock();
+
 	if(name != "FS_SESSION" && stoi(session) > main_fileserver.valid_session_range()){
 		cout_lock.lock();
 		cout << "Session number is invalid" << endl;
@@ -36,7 +40,7 @@ bool check_fs(string original){
 		return false;
 	}
 
-	if (name != "FS_SESSION" && stoi(sequence) <= main_fileserver.query_session_map(stoi(session))) {
+	if (name != "FS_SESSION" && stoi(sequence) <= main_fileserver.query_session_map_sequence(stoi(session))) {
 		cout_lock.lock();
 		cout << "Sequence number is invalid" << endl;
 		cout_lock.unlock();
@@ -77,9 +81,23 @@ int get_port_number(int sockfd) { // adapted from bgreeves-socket-example https:
 	return ntohs(addr.sin_port);
 }
 
-string encrypt_return_message(string return_message, int* error_check, const string username, bool readblock){
-	char return_encrypt[(return_message.size()*2) + 64];
-	int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), return_message.c_str(), return_message.size(), return_encrypt);
+void encrypt_return_message(string return_message, int* error_check, const string username, bool readblock, int connectionfd, string data_string){
+	char return_encrypt[((return_message.size() + data_string.size() + 1)*2) + 64];
+
+	int message_size = return_message.size() + 1;
+	if (readblock) {
+		message_size += FS_BLOCKSIZE;
+	}
+	char message_to_encrypt[message_size];
+	memcpy(message_to_encrypt, return_message.c_str(), return_message.size() + 1);
+	if (readblock) {
+		cout_lock.lock();
+		cout << "DATA: " << data_string << endl;
+		cout_lock.unlock();
+		memcpy(message_to_encrypt + return_message.size() + 1, data_string.c_str(), FS_BLOCKSIZE);
+	}
+
+	int encryption = fs_encrypt(main_fileserver.query_map(username).c_str(), message_to_encrypt, message_size, return_encrypt);
 
 	if(encryption == -1){
 		cout_lock.lock();
@@ -87,34 +105,11 @@ string encrypt_return_message(string return_message, int* error_check, const str
 		cout_lock.unlock();
 		*error_check = -1;
 		//close(connectionfd);
-		return "";
+		return;
 	}
 
-	string appender;
-	int msg_size = 0;
-	bool null_flag = false;
-	size_t i = 0;
-	for (; i < (return_message.size()*2) + 64; i++) {
-		appender += return_encrypt[i];
-		msg_size += 1;
-		if (null_flag) {
-			break;
-		}
-		if (return_encrypt[i] == '\0') {
-			null_flag = true;
-		}
-	}
-
-	if(readblock){
-		size_t already_read = i;
-		for(; i < already_read + 512; i++){
-			appender += return_encrypt[i + 1];
-			msg_size += 1;
-		}
-	}
-	appender = to_string(msg_size) + '\0' + appender; // null character doesn't actually append
-
-	return appender;
+	send(connectionfd, to_string(encryption).c_str(), to_string(encryption).size() + 1, MSG_NOSIGNAL);
+	send(connectionfd, return_encrypt, encryption, MSG_NOSIGNAL);
 }
 
 int decrypt_message(char *decrypted_msg, string &encrypted, string &username, int size_encrypted, int connectionfd) {
@@ -125,8 +120,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		encrypted_cstr[i] = encrypted[i];
 	}
 	encrypted_cstr[size_encrypted - 1] = ']';
+	//cout << encrypted_cstr[size_encrypted - 1] << endl;
 
 	int decryption = fs_decrypt(main_fileserver.query_map(username).c_str(), encrypted_cstr, size_encrypted, decrypted_msg);
+	// cout << "DECRYPTION: " << decryption << endl;
 
 	if (decryption == -1) {
 		cout_lock.lock();
@@ -209,19 +206,27 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
 	string return_message;
+	cout_lock.lock();
+	cout << string(decrypted_msg) << endl;
+	cout << "request message is " << request_message << endl;
+	cout_lock.unlock();
+
+	if(request_message != "FS_SESSION" && (main_fileserver.query_session_map_username(stoi(session)) != username)){
+		close(connectionfd);
+		return -1;
+	}
 
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
-		return_message = to_string(new_session_id) + ' '  + sequence + '\0';
+		return_message = to_string(new_session_id) + " " + sequence;
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
+		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
 
 		if(fail_check == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		send(connectionfd, appender.c_str(), appender.size(), 0); // appender.c_str() does not contain the <NULL> before the last closing bracket
 	}
 	else if(request_message == "FS_READBLOCK"){
 		cout_lock.lock();
@@ -233,40 +238,48 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 			return -1;
 		}
 		string data_string = string(read_data, 512);
-		return_message = session + ' ' + sequence + '\0' + data_string;
+		return_message = session + ' ' + sequence;
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username, 1);
+		encrypt_return_message(return_message, &fail_check, username, true, connectionfd, data_string);
 
 		if(fail_check == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		send(connectionfd, appender.c_str(), appender.size(), 0);
+		//send(connectionfd, appender.c_str(), appender.size(), 0);
 
 	}
 	else if(request_message == "FS_WRITEBLOCK"){
 		size_t specified_size = decrypted_len;
 		auto header_len = strnlen(decrypted_msg, specified_size); // must check if header size is valid later on
 		auto data_len = specified_size - header_len - 1;
+		cout_lock.lock();
+		cout << "DATA_LEN = " << data_len << endl;
+		cout << "HEADER_LEN = " << header_len << endl;
+		cout << "specified_size = " << specified_size << endl;
+		cout_lock.unlock();
 		char data[FS_BLOCKSIZE];
 		memcpy(data, decrypted_msg + header_len + 1, data_len); // eventually if replace FS_BLOCKSIZE with the size of data actually passed in for error checking
+		cout_lock.lock();
+		cout << data << endl;
+		cout_lock.unlock();
 
 		if(main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type, data) == -1){
 			close(connectionfd);
 			return -1;
 		}
-		return_message = session + ' ' + sequence + '\0';
+		return_message = session + ' ' + sequence;
 
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
+		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
 
 		if(fail_check == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		send(connectionfd, appender.c_str(), appender.size(), 0);
+		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_CREATE"){
 		
@@ -275,17 +288,17 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 			return -1;
 		};
 
-		return_message = session + ' ' + sequence + '\0';
+		return_message = session + ' ' + sequence;
 
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
+		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
 
 		if(fail_check == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		send(connectionfd, appender.c_str(), appender.size(), 0);
+		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_DELETE"){
 		if(main_fileserver.handle_fs_delete(session, sequence, pathname) == -1){
@@ -293,17 +306,17 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 			return -1;
 		}
 
-		return_message = session + ' ' + sequence + '\0';
+		return_message = session + ' ' + sequence;
 
 		int fail_check = 0;
-		string appender = encrypt_return_message(return_message, &fail_check, username, 0);
+		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
 
 		if(fail_check == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		send(connectionfd, appender.c_str(), appender.size(), 0);
+		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else{
 		cout_lock.lock();
@@ -366,6 +379,7 @@ int main(int argc, char** argv){
     socklen_t cli_len = sizeof(cli);
 
     while (1) {
+		cout << "START WHILE" << endl;
         int connectionfd = accept(sock, (struct sockaddr *)&cli, &cli_len); // (struct sockaddr *)&cli, &cli_len
 		if (connectionfd == -1) {
 			cout_lock.lock();
@@ -375,8 +389,8 @@ int main(int argc, char** argv){
 		}
 
 		thread t1(handle_connection, connectionfd);
-		t1.join();// Only for single threading testing
-		//t1.detach();
+		//t1.join();// Only for single threading testing
+		t1.detach();
 		cout_lock.lock();
 		printf("main doing stuff\n");
 		cout_lock.unlock();

@@ -68,7 +68,7 @@ int Fileserver::add_block_to_inode(fs_inode* curr){
     if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
         return -1;
     }
-    auto it = 
+
     curr->blocks[curr->size] = *(available_blocks.begin());
     curr->size++;
     available_blocks.erase(available_blocks.begin());
@@ -454,11 +454,11 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
         for(size_t i = 0; i < parent_inode.size; ++i){
             if((int) parent_inode.blocks[i] == parent_entries){
                 for(size_t j = i; j < parent_inode.size - 1; ++j){
-                --parent_inode.size;
-                goto end;
+                    --parent_inode.size;
+                    goto end;
+                }
             }
         }
-        
     }
     else{
         disk_writeblock(parent_entries, curr_entries);
@@ -534,8 +534,12 @@ string Fileserver::query_map(std::string query){
     return password_map[query];
 }
 
-int Fileserver::query_session_map(int session){
+int Fileserver::query_session_map_sequence(int session){
     return session_map[session].sequence_num;
+}
+
+string Fileserver::query_session_map_username(int session){
+    return session_map[session].username;
 }
 
 int Fileserver::valid_session_range(){
@@ -544,8 +548,8 @@ int Fileserver::valid_session_range(){
 
 void Fileserver::init_fs() {
     //available_blocks.resize(FS_MAXFILEBLOCKS);
-    fileserver_lock.lock();
-    for(size_t i = 1; i < FS_MAXFILEBLOCKS; ++i){
+    lock_guard<mutex> fs_lock(fileserver_lock);
+    for(size_t i = 1; i < FS_DISKSIZE; ++i){
         available_blocks.insert(i);
     }
     fs_inode root_inode;
@@ -559,7 +563,6 @@ void Fileserver::init_fs() {
             cout_lock.unlock();
         }
     }
-    fileserver_lock.lock();
 }
 
 // - reads into entries array the directory at dir_inode[i]

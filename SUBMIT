@@ -2,6 +2,7 @@ fs_server.cpp
 fileserver.h
 listen.cpp
 test_create.cpp
-test_delete.cpp
+test_basic_delete.cpp
 test_read.cpp
 test_write.cpp
+test_illegal_operations.cpp
