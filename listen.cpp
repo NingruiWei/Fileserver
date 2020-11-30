@@ -379,7 +379,9 @@ int main(int argc, char** argv){
     socklen_t cli_len = sizeof(cli);
 
     while (1) {
+		cout_lock.lock();
 		cout << "START WHILE" << endl;
+		cout_lock.unlock();
         int connectionfd = accept(sock, (struct sockaddr *)&cli, &cli_len); // (struct sockaddr *)&cli, &cli_len
 		if (connectionfd == -1) {
 			cout_lock.lock();

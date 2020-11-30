@@ -552,16 +552,28 @@ void Fileserver::init_fs() {
     for(size_t i = 1; i < FS_DISKSIZE; ++i){
         available_blocks.insert(i);
     }
-    fs_inode root_inode;
-    disk_readblock(0, &root_inode);
-
-    if (root_inode.size > 0) {
-        for (size_t i = 0; i < root_inode.size; i++) {
-            // push to free_data_blocks vector/array for fileserver
-            cout_lock.lock();
-            cout << root_inode.blocks[i] << endl;
-            cout_lock.unlock();
+    fs_inode curr_inode;
+    fs_direntry curr_entries[FS_DIRENTRIES];
+    size_t curr_ind;
+    queue <size_t> matt;
+    matt.push(0);
+    while(!matt.empty()){
+        curr_ind = matt.front();
+        matt.pop();
+        disk_readblock(curr_ind, &curr_inode);
+        for (size_t i = 0; i < curr_inode.size; ++i){
+            available_blocks.erase(available_blocks.find(curr_inode.blocks[i]));
+            if(curr_inode.type == 'd'){
+                disk_readblock(curr_inode.blocks[i], curr_entries);
+                for(size_t j = 0; j < FS_DIRENTRIES; ++j){
+                    if(curr_entries[j].inode_block != 0){
+                        matt.push(curr_entries[j].inode_block);
+                        available_blocks.erase(available_blocks.find(curr_entries[j].inode_block));
+                    }
+                }
+            }
         }
+
     }
 }
 
