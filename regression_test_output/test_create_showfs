@@ -1,0 +1,84 @@
+/ (type d) (inode block 0)
+        owner: 
+        size: 2
+        data disk blocks: 4095 4082 
+        entry 0: zeus, inode block 4094
+        entry 1: paul, inode block 4093
+        entry 2: jake, inode block 4088
+        entry 3: jake1, inode block 4087
+        entry 4: jake2, inode block 4086
+        entry 5: jake3, inode block 4085
+        entry 6: jake4, inode block 4084
+        entry 7: jake5, inode block 4083
+        entry 8: jake6, inode block 4081
+        entry 9: jake7, inode block 4080
+
+/zeus (type d) (inode block 4094)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/paul (type d) (inode block 4093)
+        owner: user1
+        size: 1
+        data disk blocks: 4092 
+        entry 0: klee, inode block 4091
+
+/paul/klee (type d) (inode block 4091)
+        owner: user1
+        size: 1
+        data disk blocks: 4090 
+        entry 0: kappa, inode block 4089
+
+/paul/klee/kappa (type d) (inode block 4089)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake (type d) (inode block 4088)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake1 (type d) (inode block 4087)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake2 (type d) (inode block 4086)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake3 (type d) (inode block 4085)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake4 (type d) (inode block 4084)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake5 (type d) (inode block 4083)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake6 (type d) (inode block 4081)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+/jake7 (type d) (inode block 4080)
+        owner: user1
+        size: 1
+        data disk blocks: 4079 
+        entry 0: paul, inode block 4078
+
+/jake7/paul (type d) (inode block 4078)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+4077 disk blocks free

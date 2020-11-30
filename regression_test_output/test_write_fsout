@@ -1,0 +1,468 @@
+@@@ #1 disk_readblock: block 0
+
+@@@ port 8000
+START WHILE
+main doing stuff
+START WHILE
+New connection 5
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #2 send 5 3 33
+
+@@@ #3 send 5 33 NO_ENCRYPT[password1      ][0 0]
+
+@@@ #4 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 1 /zeus f
+request message is FS_CREATE
+
+@@@ #5 disk_readblock: block 0
+
+@@@ #6 disk_writeblock: block 4094
+
+@@@ #7 disk_writeblock: block 4095
+
+@@@ #8 disk_writeblock: block 0
+
+@@@ #9 send 6 3 33
+
+@@@ #10 send 6 33 NO_ENCRYPT[password1      ][0 1]
+
+@@@ #11 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 0 2 /zeus 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 25
+specified_size = 538
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+
+@@@ #12 disk_readblock: block 0
+
+@@@ #13 disk_readblock: block 4095
+
+@@@ #14 disk_readblock: block 4094
+
+@@@ #15 disk_writeblock: block 4093
+
+@@@ #16 disk_writeblock: block 4094
+
+@@@ #17 send 5 3 33
+
+@@@ #18 send 5 33 NO_ENCRYPT[password1      ][0 2]
+
+@@@ #19 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_WRITEBLOCK 0 3 /zeus 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 25
+specified_size = 538
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+
+@@@ #20 disk_readblock: block 0
+
+@@@ #21 disk_readblock: block 4095
+
+@@@ #22 disk_readblock: block 4094
+
+@@@ #23 disk_writeblock: block 4093
+
+@@@ #24 send 6 3 33
+
+@@@ #25 send 6 33 NO_ENCRYPT[password1      ][0 3]
+
+@@@ #26 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 4 /paul d
+request message is FS_CREATE
+
+@@@ #27 disk_readblock: block 0
+
+@@@ #28 disk_readblock: block 4095
+
+@@@ #29 disk_writeblock: block 4092
+
+@@@ #30 disk_writeblock: block 4095
+
+@@@ #31 send 5 3 33
+
+@@@ #32 send 5 33 NO_ENCRYPT[password1      ][0 4]
+
+@@@ #33 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 5 /paul/klee d
+request message is FS_CREATE
+
+@@@ #34 disk_readblock: block 0
+
+@@@ #35 disk_readblock: block 4095
+
+@@@ #36 disk_readblock: block 4092
+
+@@@ #37 disk_writeblock: block 4090
+
+@@@ #38 disk_writeblock: block 4091
+
+@@@ #39 disk_writeblock: block 4092
+
+@@@ #40 send 6 3 33
+
+@@@ #41 send 6 33 NO_ENCRYPT[password1      ][0 5]
+
+@@@ #42 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 6 /paul/klee/jean d
+request message is FS_CREATE
+
+@@@ #43 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 7 /paul/klee/kappa f
+request message is FS_CREATE
+
+@@@ #44 disk_readblock: block 0
+
+@@@ #45 disk_readblock: block 4095
+
+@@@ #46 disk_readblock: block 4092
+
+@@@ #47 disk_readblock: block 4091
+
+@@@ #48 disk_readblock: block 4090
+
+@@@ #49 disk_writeblock: block 4088
+
+@@@ #50 disk_writeblock: block 4089
+
+@@@ #51 disk_writeblock: block 4090
+
+@@@ #52 send 6 3 33
+
+@@@ #53 send 6 33 NO_ENCRYPT[password1      ][0 7]
+
+@@@ #54 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 0 8 /paul/klee/kappa 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 36
+specified_size = 549
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+
+@@@ #55 disk_readblock: block 0
+
+@@@ #56 disk_readblock: block 4095
+
+@@@ #57 disk_readblock: block 4092
+
+@@@ #58 disk_readblock: block 4091
+
+@@@ #59 disk_readblock: block 4090
+
+@@@ #60 disk_readblock: block 4089
+
+@@@ #61 disk_readblock: block 4088
+
+@@@ #62 disk_writeblock: block 4087
+
+@@@ #63 disk_writeblock: block 4088
+
+@@@ #64 send 5 3 33
+
+@@@ #65 send 5 33 NO_ENCRYPT[password1      ][0 8]
+
+@@@ #66 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 9 /paul/klee/jean/kappa d
+request message is FS_CREATE
+
+@@@ #67 disk_readblock: block 0
+
+@@@ #68 disk_readblock: block 4095
+
+@@@ #69 disk_readblock: block 4092
+
+@@@ #70 disk_readblock: block 4091
+
+@@@ #71 disk_readblock: block 4090
+
+@@@ #72 disk_readblock: block 4089
+
+@@@ #73 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 10 /jake d
+request message is FS_CREATE
+
+@@@ #74 disk_readblock: block 0
+
+@@@ #75 disk_readblock: block 4095
+
+@@@ #76 disk_writeblock: block 4086
+
+@@@ #77 disk_writeblock: block 4095
+
+@@@ #78 send 5 3 34
+
+@@@ #79 send 5 34 NO_ENCRYPT[password1      ][0 10]
+
+@@@ #80 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 11 /jake1 d
+request message is FS_CREATE
+
+@@@ #81 disk_readblock: block 0
+
+@@@ #82 disk_readblock: block 4095
+
+@@@ #83 disk_writeblock: block 4085
+
+@@@ #84 disk_writeblock: block 4095
+
+@@@ #85 send 6 3 34
+
+@@@ #86 send 6 34 NO_ENCRYPT[password1      ][0 11]
+
+@@@ #87 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 12 /jake2 d
+request message is FS_CREATE
+
+@@@ #88 disk_readblock: block 0
+
+@@@ #89 disk_readblock: block 4095
+
+@@@ #90 disk_writeblock: block 4084
+
+@@@ #91 disk_writeblock: block 4095
+
+@@@ #92 send 5 3 34
+
+@@@ #93 send 5 34 NO_ENCRYPT[password1      ][0 12]
+
+@@@ #94 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 13 /jake3 d
+request message is FS_CREATE
+
+@@@ #95 disk_readblock: block 0
+
+@@@ #96 disk_readblock: block 4095
+
+@@@ #97 disk_writeblock: block 4083
+
+@@@ #98 disk_writeblock: block 4095
+
+@@@ #99 send 6 3 34
+
+@@@ #100 send 6 34 NO_ENCRYPT[password1      ][0 13]
+
+@@@ #101 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 14 /jake4 d
+request message is FS_CREATE
+
+@@@ #102 disk_readblock: block 0
+
+@@@ #103 disk_readblock: block 4095
+
+@@@ #104 disk_writeblock: block 4082
+
+@@@ #105 disk_writeblock: block 4095
+
+@@@ #106 send 5 3 34
+
+@@@ #107 send 5 34 NO_ENCRYPT[password1      ][0 14]
+
+@@@ #108 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 15 /jake5 d
+request message is FS_CREATE
+
+@@@ #109 disk_readblock: block 0
+
+@@@ #110 disk_readblock: block 4095
+
+@@@ #111 disk_writeblock: block 4081
+
+@@@ #112 disk_writeblock: block 4095
+
+@@@ #113 send 6 3 34
+
+@@@ #114 send 6 34 NO_ENCRYPT[password1      ][0 15]
+
+@@@ #115 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 16 /jake6 f
+request message is FS_CREATE
+
+@@@ #116 disk_readblock: block 0
+
+@@@ #117 disk_readblock: block 4095
+
+@@@ #118 disk_writeblock: block 4079
+
+@@@ #119 disk_writeblock: block 4080
+
+@@@ #120 disk_writeblock: block 0
+
+@@@ #121 send 5 3 34
+
+@@@ #122 send 5 34 NO_ENCRYPT[password1      ][0 16]
+
+@@@ #123 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_WRITEBLOCK 0 17 /jake6 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 27
+specified_size = 540
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+
+@@@ #124 disk_readblock: block 0
+
+@@@ #125 disk_readblock: block 4095
+
+@@@ #126 disk_readblock: block 4080
+
+@@@ #127 disk_readblock: block 4079
+
+@@@ #128 disk_writeblock: block 4078
+
+@@@ #129 disk_writeblock: block 4079
+
+@@@ #130 send 6 3 34
+
+@@@ #131 send 6 34 NO_ENCRYPT[password1      ][0 17]
+
+@@@ #132 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 18 /jake7 d
+request message is FS_CREATE
+
+@@@ #133 disk_readblock: block 0
+
+@@@ #134 disk_readblock: block 4095
+
+@@@ #135 disk_readblock: block 4080
+
+@@@ #136 disk_writeblock: block 4077
+
+@@@ #137 disk_writeblock: block 4080
+
+@@@ #138 send 5 3 34
+
+@@@ #139 send 5 34 NO_ENCRYPT[password1      ][0 18]
+
+@@@ #140 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 19 /jake7/paul f
+request message is FS_CREATE
+
+@@@ #141 disk_readblock: block 0
+
+@@@ #142 disk_readblock: block 4095
+
+@@@ #143 disk_readblock: block 4080
+
+@@@ #144 disk_readblock: block 4077
+
+@@@ #145 disk_writeblock: block 4075
+
+@@@ #146 disk_writeblock: block 4076
+
+@@@ #147 disk_writeblock: block 4077
+
+@@@ #148 send 6 3 34
+
+@@@ #149 send 6 34 NO_ENCRYPT[password1      ][0 19]
+
+@@@ #150 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 0 20 /jake7/paul 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 32
+specified_size = 545
+yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+
+@@@ #151 disk_readblock: block 0
+
+@@@ #152 disk_readblock: block 4095
+
+@@@ #153 disk_readblock: block 4080
+
+@@@ #154 disk_readblock: block 4077
+
+@@@ #155 disk_readblock: block 4076
+
+@@@ #156 disk_readblock: block 4075
+
+@@@ #157 disk_writeblock: block 4074
+
+@@@ #158 disk_writeblock: block 4075
+
+@@@ #159 send 5 3 34
+
+@@@ #160 send 5 34 NO_ENCRYPT[password1      ][0 20]
+
+@@@ #161 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 21 /paul/klee/jean/jarjar d
+request message is FS_CREATE
+
+@@@ #162 disk_readblock: block 0
+
+@@@ #163 disk_readblock: block 4095
+
+@@@ #164 disk_readblock: block 4092
+
+@@@ #165 disk_readblock: block 4091
+
+@@@ #166 disk_readblock: block 4090
+
+@@@ #167 disk_readblock: block 4089
+
+@@@ #168 close 6

@@ -28,12 +28,12 @@ int main(int argc, char *argv[])
     //The 1st directory will be able to be filled completely, but leaves only 1 block for directory 2, so directory 2 shouldn't have any files or data in it
     for(int i = 0; i < 2; i++){
         string directory_name = "/directory" + to_string(i);
-        fs_create("user1", "password1", session, seq++, directory_name, 'd'); 
+        fs_create("user1", "password1", session, seq++, directory_name.c_str(), 'd'); 
         for(int j = 0; j < 33; j++){
             string file_name = directory_name + "/file" + to_string(j);
-            fs_create("user1", "password1", session, seq++, file_name, 'f');
-            for(int k = 0; k < 125; k++){
-                fs_writeblock("user1", "password1", session, seq++, file_name, k, data);
+            fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
+            for(int k = 0; k < 124; k++){
+                fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, data);
             }
         }
     }
@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
     fs_readblock("user1", "password1", session, seq++, "/directory0/file31", 0, readdata);
     cout << "Directory 0 File 31 Block 0 output: " << readdata << endl;
 
+    //This last read causes an assertion on a disk_readwrite due to being passed a block too big while on the path to find the correct block to read
     fs_readblock("user1", "password1", session, seq++, "/directory0/file31", 123, readdata);
     cout << "Directory 0 File 31 Block 123 output: " << readdata << endl;
 
