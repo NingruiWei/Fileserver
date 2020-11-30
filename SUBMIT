@@ -6,3 +6,5 @@ test_basic_delete.cpp
 test_read.cpp
 test_write.cpp
 test_illegal_operations.cpp
+test_full_server.cpp
+test_spec.cpp
