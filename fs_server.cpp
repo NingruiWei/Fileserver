@@ -393,7 +393,11 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     int write_to_block;
     if(block > curr_inode.size){return -1;}
     else if(block == curr_inode.size){
-        write_to_block = add_block_to_inode(&curr_inode);
+        int check = add_block_to_inode(&curr_inode);
+        if(check == -1){
+            return -1;
+        }
+        write_to_block = check;
         disk_writeblock(write_to_block, data);
         disk_writeblock(parent_inode_block, &curr_inode);
         }
@@ -416,9 +420,6 @@ bool no_entries(fs_direntry* curr){
 int Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
-    if(pathname == "/jared"){
-        cout << "hi";
-    }
     fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
     
@@ -474,9 +475,14 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
 }
 
 int Fileserver::handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type){
+    if(blocks_full()){
+        return -1;
+    }
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
-
+    if(pathname == "/directory1"){
+        cout << "hi" << endl;
+    }
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     
     disk_readblock(0, &curr_inode);
@@ -496,7 +502,7 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     if(parent_entries_block == 0){
         parent_entries_block = add_block_to_inode(&curr_inode);
         if (parent_entries_block == -1){
-            //If there were no free blocks left, then you cannot add a new block to the inode, ERROR
+            return -1;
         }
         for(size_t i = 0; i < FS_DIRENTRIES; ++i){ // initializes it all to 0 for now
             curr_entries[i].inode_block = 0;

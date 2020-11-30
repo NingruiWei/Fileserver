@@ -51,12 +51,12 @@ bool check_fs(string original){
 		reappended = name + ' ' + session + ' ' + sequence;
 	}
 	else if (name == "FS_READBLOCK") {
-		ss >> block;
-		reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
+		ss >> pathname >> block;
+		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + block;
 	}
 	else if (name == "FS_WRITEBLOCK") {
-		ss >> block;
-		reappended = name + ' ' + session + ' ' + sequence + ' ' + block;
+		ss >> pathname >> block;
+		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + block;
 	}
 	else if (name == "FS_CREATE") {
 		ss >> pathname >> type;
@@ -135,13 +135,13 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 
 	// MUST FINISH IMPLEMENTING
 
-	// if(!check_fs(string(decrypted_msg))){
-	// 	cout_lock.lock();
-	// 	cout << "Invalid message received" << endl;
-	// 	cout_lock.unlock();
-	// 	close(connectionfd);
-	// 	return -1;
-	// }
+	if(!check_fs(string(decrypted_msg))){
+		cout_lock.lock();
+		cout << "Invalid message received" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return -1;
+	}
 	return decryption;
 }
 
@@ -200,6 +200,13 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	//decrypt the message and store in char[]
 	char decrypted_msg[stoi(size)];
 	int decrypted_len = decrypt_message(decrypted_msg, encrypted, username, stoi(size), connectionfd);
+	if (decrypted_len == -1) {
+		cout_lock.lock();
+		cout << "DECRYPTION HAD INVALID STUFF" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return -1;
+	}
 
 	string request_message, session, sequence, pathname, block_or_type;
 	stringstream ss2(decrypted_msg);
