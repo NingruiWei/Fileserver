@@ -1,0 +1,298 @@
+@@@ #1 disk_readblock: block 0
+
+@@@ port 8000
+START WHILE
+main doing stuff
+START WHILE
+New connection 5
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #2 send 5 3 33
+
+@@@ #3 send 5 33 NO_ENCRYPT[password1      ][0 0]
+
+@@@ #4 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 1 /paul d
+request message is FS_CREATE
+
+@@@ #5 disk_readblock: block 0
+
+@@@ #6 disk_writeblock: block 4094
+
+@@@ #7 disk_writeblock: block 4095
+
+@@@ #8 disk_writeblock: block 0
+
+@@@ #9 send 6 3 33
+
+@@@ #10 send 6 33 NO_ENCRYPT[password1      ][0 1]
+
+@@@ #11 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 2 /paul/klee d
+request message is FS_CREATE
+
+@@@ #12 disk_readblock: block 0
+
+@@@ #13 disk_readblock: block 4095
+
+@@@ #14 disk_readblock: block 4094
+
+@@@ #15 disk_writeblock: block 4092
+
+@@@ #16 disk_writeblock: block 4093
+
+@@@ #17 disk_writeblock: block 4094
+
+@@@ #18 send 5 3 33
+
+@@@ #19 send 5 33 NO_ENCRYPT[password1      ][0 2]
+
+@@@ #20 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 3 /paul/klee/danny d
+request message is FS_CREATE
+
+@@@ #21 disk_readblock: block 0
+
+@@@ #22 disk_readblock: block 4095
+
+@@@ #23 disk_readblock: block 4094
+
+@@@ #24 disk_readblock: block 4093
+
+@@@ #25 disk_readblock: block 4092
+
+@@@ #26 disk_writeblock: block 4090
+
+@@@ #27 disk_writeblock: block 4091
+
+@@@ #28 disk_writeblock: block 4092
+
+@@@ #29 send 6 3 33
+
+@@@ #30 send 6 33 NO_ENCRYPT[password1      ][0 3]
+
+@@@ #31 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 4 /paul/klee/danny/phantom d
+request message is FS_CREATE
+
+@@@ #32 disk_readblock: block 0
+
+@@@ #33 disk_readblock: block 4095
+
+@@@ #34 disk_readblock: block 4094
+
+@@@ #35 disk_readblock: block 4093
+
+@@@ #36 disk_readblock: block 4092
+
+@@@ #37 disk_readblock: block 4091
+
+@@@ #38 disk_readblock: block 4090
+
+@@@ #39 disk_writeblock: block 4088
+
+@@@ #40 disk_writeblock: block 4089
+
+@@@ #41 disk_writeblock: block 4090
+
+@@@ #42 send 5 3 33
+
+@@@ #43 send 5 33 NO_ENCRYPT[password1      ][0 4]
+
+@@@ #44 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 0 5 /paul/klee/danny/phantom/bobo d
+request message is FS_CREATE
+
+@@@ #45 disk_readblock: block 0
+
+@@@ #46 disk_readblock: block 4095
+
+@@@ #47 disk_readblock: block 4094
+
+@@@ #48 disk_readblock: block 4093
+
+@@@ #49 disk_readblock: block 4092
+
+@@@ #50 disk_readblock: block 4091
+
+@@@ #51 disk_readblock: block 4090
+
+@@@ #52 disk_readblock: block 4089
+
+@@@ #53 disk_readblock: block 4088
+
+@@@ #54 disk_writeblock: block 4086
+
+@@@ #55 disk_writeblock: block 4087
+
+@@@ #56 disk_writeblock: block 4088
+
+@@@ #57 send 6 3 33
+
+@@@ #58 send 6 33 NO_ENCRYPT[password1      ][0 5]
+
+@@@ #59 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_DELETE 0 6 /paul
+request message is FS_DELETE
+
+@@@ #60 disk_readblock: block 0
+
+@@@ #61 disk_readblock: block 4095
+
+@@@ #62 disk_readblock: block 4094
+
+@@@ #63 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 0 7 /paul/klee/danny/phantom/bobo
+request message is FS_DELETE
+
+@@@ #64 disk_readblock: block 0
+
+@@@ #65 disk_readblock: block 4095
+
+@@@ #66 disk_readblock: block 4094
+
+@@@ #67 disk_readblock: block 4093
+
+@@@ #68 disk_readblock: block 4092
+
+@@@ #69 disk_readblock: block 4091
+
+@@@ #70 disk_readblock: block 4090
+
+@@@ #71 disk_readblock: block 4089
+
+@@@ #72 disk_readblock: block 4088
+
+@@@ #73 disk_readblock: block 4087
+
+@@@ #74 disk_readblock: block 4086
+
+@@@ #75 disk_writeblock: block 4088
+
+@@@ #76 send 6 3 33
+
+@@@ #77 send 6 33 NO_ENCRYPT[password1      ][0 7]
+
+@@@ #78 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_DELETE 0 8 /paul/klee/danny/phantom
+request message is FS_DELETE
+
+@@@ #79 disk_readblock: block 0
+
+@@@ #80 disk_readblock: block 4095
+
+@@@ #81 disk_readblock: block 4094
+
+@@@ #82 disk_readblock: block 4093
+
+@@@ #83 disk_readblock: block 4092
+
+@@@ #84 disk_readblock: block 4091
+
+@@@ #85 disk_readblock: block 4090
+
+@@@ #86 disk_readblock: block 4089
+
+@@@ #87 disk_readblock: block 4088
+
+@@@ #88 disk_writeblock: block 4090
+
+@@@ #89 send 5 3 33
+
+@@@ #90 send 5 33 NO_ENCRYPT[password1      ][0 8]
+
+@@@ #91 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 0 9 /paul/klee/danny
+request message is FS_DELETE
+
+@@@ #92 disk_readblock: block 0
+
+@@@ #93 disk_readblock: block 4095
+
+@@@ #94 disk_readblock: block 4094
+
+@@@ #95 disk_readblock: block 4093
+
+@@@ #96 disk_readblock: block 4092
+
+@@@ #97 disk_readblock: block 4091
+
+@@@ #98 disk_readblock: block 4090
+
+@@@ #99 disk_writeblock: block 4092
+
+@@@ #100 send 6 3 33
+
+@@@ #101 send 6 33 NO_ENCRYPT[password1      ][0 9]
+
+@@@ #102 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_DELETE 0 10 /paul/klee
+request message is FS_DELETE
+
+@@@ #103 disk_readblock: block 0
+
+@@@ #104 disk_readblock: block 4095
+
+@@@ #105 disk_readblock: block 4094
+
+@@@ #106 disk_readblock: block 4093
+
+@@@ #107 disk_readblock: block 4092
+
+@@@ #108 disk_writeblock: block 4094
+
+@@@ #109 send 5 3 34
+
+@@@ #110 send 5 34 NO_ENCRYPT[password1      ][0 10]
+
+@@@ #111 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 0 11 /paul
+request message is FS_DELETE
+
+@@@ #112 disk_readblock: block 0
+
+@@@ #113 disk_readblock: block 4095
+
+@@@ #114 disk_readblock: block 4094
+
+@@@ #115 disk_writeblock: block 0
+
+@@@ #116 send 6 3 34
+
+@@@ #117 send 6 34 NO_ENCRYPT[password1      ][0 11]
+
+@@@ #118 close 6
