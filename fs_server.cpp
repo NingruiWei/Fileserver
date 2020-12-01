@@ -149,7 +149,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
         for(size_t i = 0; i < curr_inode->size; ++i){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; ++j){
-                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                if(curr_entries[j].inode_block != 0 && strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
                     parent_inode_block = curr_entries[j].inode_block;
                     goto loop;
                 }
@@ -185,7 +185,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     for(size_t i = 0; i < curr_inode->size; i++){
         disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
         for(size_t j = 0; j < FS_DIRENTRIES; j++){
-            if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+            if(curr_entries[j].inode_block != 0 && strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
                 curr_inode_block = curr_entries[j].inode_block;
                 parent_entries_block = curr_inode->blocks[i];
                 parent_entries_index = j;
@@ -193,7 +193,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
             }
         }
     }
-    
+    return -1; // didn't find a matching filename to delete;
    
     end:
     return 0;
@@ -219,7 +219,7 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
-                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                if( curr_entries[j].inode_block != 0 && strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
                     parent_inode_block = curr_entries[j].inode_block;
                     goto loop;
                 }
@@ -250,7 +250,7 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
         
         for(size_t j = 0; j < FS_DIRENTRIES; j++){
-            if(strcmp(parsed_pathname.back().c_str(), curr_entries[j].name) == 0){
+            if(curr_entries[j].inode_block!= 0 && strcmp(parsed_pathname.back().c_str(), curr_entries[j].name) == 0){
                 return -1;
             }
             if(!found && curr_entries[j].inode_block == 0){
@@ -290,7 +290,7 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
-                if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
+                if((curr_entries[j].inode_block != 0) && strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
                     parent_inode_block = curr_entries[j].inode_block;
                     goto loop;
                 }
@@ -418,7 +418,9 @@ bool no_entries(fs_direntry* curr){
 }
 
 int Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
-   
+    if(pathname == "/john"){
+        cout << "hi " << endl;
+    }
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
     fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
