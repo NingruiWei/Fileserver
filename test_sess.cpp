@@ -22,9 +22,30 @@ int main(int argc, char *argv[])
     server = argv[1];
     server_port = atoi(argv[2]);
 
-    fs_clientinit(server, server_port);
-    fs_session("user1", "password1", &session, seq++);
+    unsigned int user1_session = session;
+    unsigned int user1_seq = seq;
+    unsigned int user2_session = session;
+    unsigned int user2_seq = seq;
 
+    fs_clientinit(server, server_port);
+    fs_create("user1", "password1", user1_session, user1_seq++, "/home", 'd');
+    fs_create("user2", "password2", user2_session, user2_seq++, "/genshin", 'f');
+    user1_session = 0;
+    fs_session("user1", "password1", &user1_session, user1_seq++);
+    user1_session++;
+    fs_create("user1", "password1", user1_session, user1_seq++, "/impact", 'd');
+    user2_session = 0;
+    fs_session("user2", "password2", &user1_session, user2_seq++);
+    user2_session++;
+    cout << "CHANGING USER1 SESSION & SEQUENCE TO USER2 SESSION & SEQUENCE" << endl;
+    user1_session = user2_session;
+    user1_seq = user2_seq;
+    fs_create("user1", "password1", user1_session, user1_seq++, "/impact", 'd');
+    fs_session("user1", "password2", &user1_session, user1_seq++);
+    fs_session("user2", "password1", &user2_session, user2_seq++);
+    fs_session("asdawd2rawdwasdaw", "password1", &user1_session, user1_seq++);
+    fs_session("user1", "asdawdwadwaawwdawdawdd", &user1_session, user1_seq++);
+    fs_session("wdawadwdawdwa", "pawadw2addwad", &session, seq++);
     return 0;
     
 }
