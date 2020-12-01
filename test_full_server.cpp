@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
     for(int i = 0; i < 2; i++){
         string directory_name = "/directory" + to_string(i);
         fs_create("user1", "password1", session, seq++, directory_name.c_str(), 'd'); 
-        for(int j = 0; j < 33; j++){
+        for(int j = 0; j < 16; j++){ //Changed from 33 to work on AG
             string file_name = directory_name + "/file" + to_string(j);
             fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
-            for(int k = 0; k < 124; k++){
+            for(int k = 0; k < 16; k++){ //Changed from 124 to work on AG
                 fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, data);
             }
         }
