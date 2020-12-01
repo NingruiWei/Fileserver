@@ -150,7 +150,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
             for(size_t j = 0; j < FS_DIRENTRIES; ++j){
                 if(strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
-                    parent_inode_block = curr_inode->blocks[i];
+                    parent_inode_block = curr_entries[j].inode_block;
                     goto loop;
                 }
             }
@@ -418,6 +418,7 @@ bool no_entries(fs_direntry* curr){
 }
 
 int Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
+   
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
     fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
@@ -475,14 +476,13 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
 }
 
 int Fileserver::handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type){
+    
     if(blocks_full()){
         return -1;
-    }
+    }   
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
-    if(pathname == "/directory1"){
-        cout << "hi" << endl;
-    }
+    
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     
     disk_readblock(0, &curr_inode);
@@ -508,6 +508,9 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
             curr_entries[i].inode_block = 0;
             }
         curr_entries_full = true;
+    }
+    if (blocks_full()){
+        return -1;
     }
     
 

@@ -60,17 +60,17 @@ int main(int argc, char *argv[])
         directory_names.pop_back();
     }
 
-    // for(int i = 0; i < 2; i++){
-    //     string directory_name = "/directory" + to_string(i);
-    //     fs_create("user1", "password1", session, seq++, directory_name.c_str(), 'd'); 
-    //     for(int j = 0; j < 33; j++){
-    //         string file_name = directory_name + "/file" + to_string(j);
-    //         fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
-    //         for(int k = 0; k < 124; k++){
-    //             fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, data2);
-    //         }
-    //     }
-    // }
+    for(int i = 0; i < 2; i++){
+        string directory_name = "/directory" + to_string(i);
+        fs_create("user1", "password1", session, seq++, directory_name.c_str(), 'd'); 
+        for(int j = 0; j < 33; j++){
+            string file_name = directory_name + "/file" + to_string(j);
+            fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
+            for(int k = 0; k < 124; k++){
+                fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, data2);
+            }
+        }
+    }
 
     fs_readblock("user1", "password1", session, seq++, "/directory1/file0", 0, readdata);
     cout << "Directory 1 File 0 Block 0 output: " << string(readdata, 10) << endl; //Should be empty
