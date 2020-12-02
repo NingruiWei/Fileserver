@@ -14,3 +14,4 @@ test_step_down.cpp
 test_fill_delete_fill.cpp
 test_delete_middle_block.cpp
 test_depth.cpp
+test_write_errors.cpp
