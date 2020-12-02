@@ -11,6 +11,8 @@
 using namespace std;
 
 extern mutex cout_lock;
+unordered_map<std::string, on_disk_lock> directory_lock_map;
+mutex fileserver_lock;
 
 Fileserver::Fileserver(){}
 
@@ -21,29 +23,46 @@ void deepcopy(fs_direntry* new_one, fs_direntry* original){
         new_one[i].inode_block = original[i].inode_block;
     }
 }
-void Fileserver::lock_on_disk(std::string path, bool shared_lock){
+void lock_on_disk(std::string path, bool shared_lock){
     lock_guard<mutex> fs_lock(fileserver_lock);
     directory_lock_map[path].lock_uses++;
     if(shared_lock){
         //If this is a shared lock (meant for reading) we need to do a shared locking function
         directory_lock_map[path].lock.lock_shared();
+        cout_lock.lock();
+        cout << path << " path shared locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
     else{
         //Not a shared lock (meant for writing)
-         directory_lock_map[path].lock.lock();
+        directory_lock_map[path].lock.lock();
+        cout_lock.lock();
+        cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
 }
 
-void Fileserver::unlock_on_disk(std::string path, bool shared_lock){
+void unlock_on_disk(std::string path, bool shared_lock){
     lock_guard<mutex> fs_lock(fileserver_lock);
+
+    if(directory_lock_map.find(path) == directory_lock_map.end()){
+        return; //path does not exist in the map
+    } 
+
     on_disk_lock *to_unlock = &directory_lock_map[path];
     to_unlock->lock_uses--;
     
     if(shared_lock){
         to_unlock->lock.unlock_shared();
+        cout_lock.lock();
+        cout << path << " path shared unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
     else{
         to_unlock->lock.unlock();
+        cout_lock.lock();
+        cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
 
     if(to_unlock->lock_uses == 0){
@@ -136,14 +155,14 @@ bool direntries_full(fs_direntry entries[]){
 // afterwards parent_inode block will be the block of the directory that we're going to insert stuff into, parent_entries block will be the correct entries block, or 0 if one does not exist
 // curr_inode should be the root coming in.
 int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
- int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entries_index, int& parent_inode_block, string username){
+ int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entries_index, int& parent_inode_block, string username, path_lock &return_parent_lock, path_lock &return_child_lock){
    //Need to add hand-over-hand reader locks for traversal. Should be straight forward, but we're lazy right now
     curr_inode_block = 0;
     parent_entries_block = 0;
     parent_inode_block = 0;
     string travelled_path = "/";
     bool shared_status = (parsed_pathname.size() - 1) != 0;
-    path_lock parent_lock(travelled_path, shared_status, this);
+    path_lock parent_lock(travelled_path, shared_status);
     int loop = 0;
     while(parsed_pathname.size() > 1){  
         for(size_t i = 0; i < curr_inode->size; ++i){
@@ -164,7 +183,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
             travelled_path += "/";
         }
         shared_status = (parsed_pathname.size() >= 2);
-        path_lock child_lock(travelled_path, shared_status, this);
+        path_lock child_lock(travelled_path, shared_status);
         disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
         if(loop == 0 && strcmp(curr_inode->owner, username.c_str()) != 0 ){
             return -1;
@@ -174,6 +193,8 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
         ++loop;
     }
 
+    travelled_path += parsed_pathname.back();
+    return_child_lock.new_lock(travelled_path, false);
     parent_inode->type = curr_inode->type;
     strcpy(parent_inode->owner, curr_inode->owner);
     parent_inode->size = curr_inode->size;
@@ -196,17 +217,18 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     return -1; // didn't find a matching filename to delete;
    
     end:
+    parent_lock.swap_lock(&return_parent_lock);
     return 0;
 }
 int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, fs_inode* curr_inode,
-             fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, string username){
+             fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, string username, path_lock &return_parent_lock){
     parent_inode_block = 0;
     parent_entries_block = 0;
     fs_direntry fake_entries[FS_DIRENTRIES];
     int loop = 0;
     string travelled_path = "/";
     bool shared_status = (parsed_pathname.size() - 1) != 0;
-    path_lock parent_lock(travelled_path, shared_status, this);
+    path_lock parent_lock(travelled_path, shared_status);
 
     while(parsed_pathname.size() > 1){ //While we still have more than just the new directory/file we're interest in creating
         
@@ -234,7 +256,7 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
             travelled_path += "/";
         }
         shared_status = (parsed_pathname.size() >= 2);
-        path_lock child_lock(travelled_path, shared_status, this);
+        path_lock child_lock(travelled_path, shared_status);
         disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
         if(loop == 0 && strcmp(curr_inode->owner, username.c_str()) != 0){
                 return -1; // check to see that the username matches directory
@@ -268,18 +290,20 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
     if(curr_inode->size == 0 || direntries_full(curr_entries)){
         parent_entries_block = 0;
     }
+
+    parent_lock.swap_lock(&return_parent_lock);
     
     return 0;
 }
 int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, 
-            fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool fs_read, string username){
+            fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool fs_read, string username, path_lock &return_parent_lock, path_lock &return_child_lock){
     
     parent_inode_block = 0;
     parent_entries_block = 0;
 
     string travelled_path = "/";
     bool shared_status = (parsed_pathname.size() != 0 || fs_read);
-    path_lock parent_lock(travelled_path, shared_status, this);
+    path_lock parent_lock(travelled_path, shared_status);
     int loop = 0;
     while((parsed_pathname.size() > 0)){ //While we still have more than just the new directory/file we're interest in creating
         
@@ -304,17 +328,19 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         if(parsed_pathname.size() > 1){
             travelled_path += "/";
         }
+        parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         shared_status = (parsed_pathname.size() != 0 || fs_read);
-        path_lock child_lock(travelled_path, shared_status, this);
+        path_lock child_lock(travelled_path, shared_status);
         disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
         if(loop == 0 && strcmp(curr_inode->owner, username.c_str()) != 0){
                 return -1; // check to see that the username matches directory
             }
         parent_lock.swap_lock(&child_lock);
-        parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
+        child_lock.swap_lock(&return_child_lock);
         ++loop;
     }
     
+    parent_lock.swap_lock(&return_parent_lock);
     return 0;
 }
 
@@ -359,7 +385,9 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
     int parent_inode, parent_entries;
     string username = session_map[stoi(session)].username;
 
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, true, username) == -1){
+    path_lock parent_lock, child_lock;
+
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, true, username, parent_lock, child_lock) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
@@ -381,7 +409,10 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int parent_inode_block = 0, parent_entries_block;
     string username = session_map[stoi(session)].username;
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false, username) == -1){
+
+    path_lock parent_lock, child_lock;
+
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false, username, parent_lock, child_lock) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
@@ -429,7 +460,10 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int curr_inode_block = 0, parent_entries = 0, parent_entries_index = -1, parent_node_block;
     string username = session_map[stoi(session)].username;
-    if(traverse_pathname_delete(parsed_pathname, &curr_inode, curr_entries, curr_inode_block, parent_entries, &parent_inode, parent_entries_index, parent_node_block, username) == -1){
+
+    path_lock parent_lock, child_lock;
+
+    if(traverse_pathname_delete(parsed_pathname, &curr_inode, curr_entries, curr_inode_block, parent_entries, &parent_inode, parent_entries_index, parent_node_block, username, parent_lock, child_lock) == -1){
         return -1;
     }
     disk_readblock(curr_inode_block, &curr_inode);
@@ -494,8 +528,10 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
         curr_entries[i].inode_block = 0;
     }
     int parent_inode_block = 0, parent_entries_block = 0;
+
+    path_lock parent_lock;
     
-    if(traverse_pathname_create(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, username) == -1){
+    if(traverse_pathname_create(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, username, parent_lock) == -1){
         return -1;
     }
     // if no room currently to add new direntry
