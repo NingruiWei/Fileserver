@@ -417,6 +417,9 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
         return -1;
     }
    
+    if(curr_inode.type != 'f'){
+        return -1;
+    }
     
 
     // we always need to add a new block to blocks
@@ -449,9 +452,7 @@ bool no_entries(fs_direntry* curr){
 }
 
 int Fileserver::handle_fs_delete(std::string session, std::string sequence, std::string pathname){
-    if(pathname == "/john"){
-        cout << "hi " << endl;
-    }
+    
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     split_string_spaces(parsed_pathname, pathname); //Parse pathname on /'s
     fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
