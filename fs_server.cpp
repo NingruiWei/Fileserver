@@ -29,16 +29,16 @@ void lock_on_disk(std::string path, bool shared_lock){
     if(shared_lock){
         //If this is a shared lock (meant for reading) we need to do a shared locking function
         directory_lock_map[path].lock.lock_shared();
-        cout_lock.lock();
-        cout << path << " path shared locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        cout_lock.unlock();
+        // cout_lock.lock();
+        // cout << path << " path shared locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        // cout_lock.unlock();
     }
     else{
         //Not a shared lock (meant for writing)
         directory_lock_map[path].lock.lock();
-        cout_lock.lock();
-        cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        cout_lock.unlock();
+        // cout_lock.lock();
+        // cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        // cout_lock.unlock();
     }
 }
 
@@ -54,15 +54,15 @@ void unlock_on_disk(std::string path, bool shared_lock){
     
     if(shared_lock){
         to_unlock->lock.unlock_shared();
-        cout_lock.lock();
-        cout << path << " path shared unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        cout_lock.unlock();
+        // cout_lock.lock();
+        // cout << path << " path shared unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        // cout_lock.unlock();
     }
     else{
         to_unlock->lock.unlock();
-        cout_lock.lock();
-        cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        cout_lock.unlock();
+        // cout_lock.lock();
+        // cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        // cout_lock.unlock();
     }
 
     if(to_unlock->lock_uses == 0){

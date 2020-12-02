@@ -1,60 +1,13 @@
 / (type d) (inode block 0)
         owner: 
-        size: 2
-        data disk blocks: 4095 4086 
+        size: 1
+        data disk blocks: 4095 
         entry 0: zeus, inode block 4094
-        entry 1: paul, inode block 4093
-        entry 2: victor, inode block 4092
-        entry 3: john, inode block 4091
-        entry 4: alamo, inode block 4090
-        entry 5: jesus, inode block 4089
-        entry 6: qiqi, inode block 4088
-        entry 7: mormon, inode block 4087
-        entry 8: superman, inode block 4085
 
-/zeus (type d) (inode block 4094)
+/zeus (type f) (inode block 4094)
         owner: user1
-        size: 0
-        data disk blocks: 
+        size: 1
+        data disk blocks: 4093 
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
 
-/paul (type d) (inode block 4093)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/victor (type d) (inode block 4092)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/john (type d) (inode block 4091)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/alamo (type d) (inode block 4090)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/jesus (type d) (inode block 4089)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/qiqi (type d) (inode block 4088)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/mormon (type d) (inode block 4087)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-/superman (type d) (inode block 4085)
-        owner: user1
-        size: 0
-        data disk blocks: 
-
-4084 disk blocks free
+4092 disk blocks free

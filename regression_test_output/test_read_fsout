@@ -16,7 +16,7 @@ request message is FS_SESSION
 main doing stuff
 START WHILE
 New connection 6
-FS_CREATE 0 1 /zeus d
+FS_CREATE 0 1 /zeus f
 request message is FS_CREATE
 
 @@@ #5 disk_readblock: block 0
@@ -35,194 +35,46 @@ request message is FS_CREATE
 main doing stuff
 START WHILE
 New connection 5
-FS_CREATE 0 2 /paul d
-request message is FS_CREATE
+FS_WRITEBLOCK 0 2 /zeus 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 25
+specified_size = 538
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
 
 @@@ #12 disk_readblock: block 0
 
 @@@ #13 disk_readblock: block 4095
 
-@@@ #14 disk_writeblock: block 4093
+@@@ #14 disk_readblock: block 4094
 
-@@@ #15 disk_writeblock: block 4095
+@@@ #15 disk_writeblock: block 4093
 
-@@@ #16 send 5 3 33
+@@@ #16 disk_writeblock: block 4094
 
-@@@ #17 send 5 33 NO_ENCRYPT[password1      ][0 2]
+@@@ #17 send 5 3 33
 
-@@@ #18 close 5
+@@@ #18 send 5 33 NO_ENCRYPT[password1      ][0 2]
+
+@@@ #19 close 5
 main doing stuff
 START WHILE
 New connection 6
-FS_CREATE 0 3 /victor d
-request message is FS_CREATE
+FS_READBLOCK 0 3 /zeus 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
 
-@@@ #19 disk_readblock: block 0
+@@@ #20 disk_readblock: block 0
 
-@@@ #20 disk_readblock: block 4095
+@@@ #21 disk_readblock: block 4095
 
-@@@ #21 disk_writeblock: block 4092
+@@@ #22 disk_readblock: block 4094
 
-@@@ #22 disk_writeblock: block 4095
+@@@ #23 disk_readblock: block 4093
+DATA: We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
 
-@@@ #23 send 6 3 33
+@@@ #24 send 6 4 545
 
-@@@ #24 send 6 33 NO_ENCRYPT[password1      ][0 3]
+@@@ #25 send 6 545 NO_ENCRYPT[password1      ][0 3We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying]
 
-@@@ #25 close 6
-main doing stuff
-START WHILE
-New connection 5
-FS_CREATE 0 4 /john d
-request message is FS_CREATE
-
-@@@ #26 disk_readblock: block 0
-
-@@@ #27 disk_readblock: block 4095
-
-@@@ #28 disk_writeblock: block 4091
-
-@@@ #29 disk_writeblock: block 4095
-
-@@@ #30 send 5 3 33
-
-@@@ #31 send 5 33 NO_ENCRYPT[password1      ][0 4]
-
-@@@ #32 close 5
-main doing stuff
-START WHILE
-New connection 6
-FS_CREATE 0 5 /alamo d
-request message is FS_CREATE
-
-@@@ #33 disk_readblock: block 0
-
-@@@ #34 disk_readblock: block 4095
-
-@@@ #35 disk_writeblock: block 4090
-
-@@@ #36 disk_writeblock: block 4095
-
-@@@ #37 send 6 3 33
-
-@@@ #38 send 6 33 NO_ENCRYPT[password1      ][0 5]
-
-@@@ #39 close 6
-main doing stuff
-START WHILE
-New connection 5
-FS_CREATE 0 6 /jesus d
-request message is FS_CREATE
-
-@@@ #40 disk_readblock: block 0
-
-@@@ #41 disk_readblock: block 4095
-
-@@@ #42 disk_writeblock: block 4089
-
-@@@ #43 disk_writeblock: block 4095
-
-@@@ #44 send 5 3 33
-
-@@@ #45 send 5 33 NO_ENCRYPT[password1      ][0 6]
-
-@@@ #46 close 5
-main doing stuff
-START WHILE
-New connection 6
-FS_CREATE 0 7 /klee d
-request message is FS_CREATE
-
-@@@ #47 disk_readblock: block 0
-
-@@@ #48 disk_readblock: block 4095
-
-@@@ #49 disk_writeblock: block 4088
-
-@@@ #50 disk_writeblock: block 4095
-
-@@@ #51 send 6 3 33
-
-@@@ #52 send 6 33 NO_ENCRYPT[password1      ][0 7]
-
-@@@ #53 close 6
-main doing stuff
-START WHILE
-New connection 5
-FS_CREATE 0 8 /mormon d
-request message is FS_CREATE
-
-@@@ #54 disk_readblock: block 0
-
-@@@ #55 disk_readblock: block 4095
-
-@@@ #56 disk_writeblock: block 4087
-
-@@@ #57 disk_writeblock: block 4095
-
-@@@ #58 send 5 3 33
-
-@@@ #59 send 5 33 NO_ENCRYPT[password1      ][0 8]
-
-@@@ #60 close 5
-main doing stuff
-START WHILE
-New connection 6
-FS_CREATE 0 9 /superman d
-request message is FS_CREATE
-
-@@@ #61 disk_readblock: block 0
-
-@@@ #62 disk_readblock: block 4095
-
-@@@ #63 disk_writeblock: block 4085
-
-@@@ #64 disk_writeblock: block 4086
-
-@@@ #65 disk_writeblock: block 0
-
-@@@ #66 send 6 3 33
-
-@@@ #67 send 6 33 NO_ENCRYPT[password1      ][0 9]
-
-@@@ #68 close 6
-main doing stuff
-START WHILE
-New connection 5
-FS_DELETE 0 10 /klee
-request message is FS_DELETE
-
-@@@ #69 disk_readblock: block 0
-
-@@@ #70 disk_readblock: block 4095
-
-@@@ #71 disk_readblock: block 4088
-
-@@@ #72 disk_writeblock: block 4095
-
-@@@ #73 send 5 3 34
-
-@@@ #74 send 5 34 NO_ENCRYPT[password1      ][0 10]
-
-@@@ #75 close 5
-main doing stuff
-START WHILE
-New connection 6
-FS_CREATE 0 11 /qiqi d
-request message is FS_CREATE
-
-@@@ #76 disk_readblock: block 0
-
-@@@ #77 disk_readblock: block 4095
-
-@@@ #78 disk_readblock: block 4086
-
-@@@ #79 disk_writeblock: block 4088
-
-@@@ #80 disk_writeblock: block 4095
-
-@@@ #81 send 6 3 34
-
-@@@ #82 send 6 34 NO_ENCRYPT[password1      ][0 11]
-
-@@@ #83 close 6
+@@@ #26 close 6
