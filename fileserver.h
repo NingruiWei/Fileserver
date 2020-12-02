@@ -93,7 +93,7 @@ class Fileserver{
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);
         int traverse_pathname_delete(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
                                     int &curr_inode_block, int &parent_entries_block, fs_inode* parent_inode, int& parent_entry_index, int& parent_inode_block, string username,
-                                    path_lock &return_parent_lock, path_lock &return_child_lock);
+                                    path_lock &return_parent_lock, path_lock &return_child_lock, path_lock &return_to_delete_lock);
         int traverse_pathname_create(vector<std::string> &parsed_pathname, fs_inode* curr_inode,
                                     fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, string username, path_lock &return_parent_lock);
         int traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, fs_direntry curr_entries[],
