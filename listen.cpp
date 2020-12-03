@@ -200,6 +200,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	//decrypt the message and store in char[]
 	char decrypted_msg[stoi(size)];
 	int decrypted_len = decrypt_message(decrypted_msg, encrypted, username, stoi(size), connectionfd);
+	
 	if (decrypted_len == -1) {
 		cout_lock.lock();
 		cout << "DECRYPTION HAD INVALID STUFF" << endl;
@@ -334,6 +335,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	}
 
 	//Close connection and return successfully
+	main_fileserver.insert_sequence(stoi(sequence), session);
 	close(connectionfd);
 	return 0;
 }

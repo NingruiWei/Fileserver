@@ -85,6 +85,7 @@ class Fileserver{
         void fill_password_map();
         bool username_in_map(std::string query);
         std::string query_map(std::string query);
+        void insert_sequence(int sequence, string session);
         int query_session_map_sequence(int session);
         string query_session_map_username(int session);
         int valid_session_range();
