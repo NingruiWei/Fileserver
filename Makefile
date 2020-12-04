@@ -1,4 +1,4 @@
-CC=g++ -g -Wall -std=c++17
+CC=g++ -g -Wall -pthread -std=c++17
 
 # List of source files for your file server
 FS_SOURCES= listen.cpp fs_server.cpp
@@ -14,7 +14,7 @@ fs: ${FS_OBJS} libfs_server.o
 	${CC} -o $@ $^ -pthread -ldl
 
 # Compile a client program
-app: test_temp.cpp libfs_client.o
+app: test_concurrency.cpp libfs_client.o
 	${CC} -o $@ $^
 
 # Generic rules for compiling a source file to an object file
