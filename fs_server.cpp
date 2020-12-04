@@ -36,9 +36,9 @@ void lock_on_disk(std::string path, bool shared_lock){
     else{
         //Not a shared lock (meant for writing)
         directory_lock_map[path].lock.lock();
-        cout_lock.lock();
-        cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        cout_lock.unlock();
+        // cout_lock.lock();
+        // cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        // cout_lock.unlock();
     }
 }
 
@@ -60,9 +60,9 @@ void unlock_on_disk(std::string path, bool shared_lock){
     }
     else{
         to_unlock->lock.unlock();
-        cout_lock.lock();
-        cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        cout_lock.unlock();
+        // cout_lock.lock();
+        // cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        // cout_lock.unlock();
     }
 
     if(to_unlock->lock_uses == 0){
@@ -228,10 +228,10 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     end:
     parent_lock.swap_lock(&return_parent_lock);
 
-    cout_lock.lock();
-    cout << "Parent lock: " << return_parent_lock.pathname << endl;
-    cout << "Delete lock: " << return_to_delete_lock.pathname << endl;
-    cout_lock.unlock();
+    // cout_lock.lock();
+    // cout << "Parent lock: " << return_parent_lock.pathname << endl;
+    // cout << "Delete lock: " << return_to_delete_lock.pathname << endl;
+    // cout_lock.unlock();
 
     return 0;
 }
@@ -306,9 +306,9 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         parent_entries_block = 0;
     }
     
-    cout_lock.lock();
-    cout << "Parent lock: " << return_parent_lock.pathname << endl;
-    cout_lock.unlock();
+    // cout_lock.lock();
+    // cout << "Parent lock: " << return_parent_lock.pathname << endl;
+    // cout_lock.unlock();
 
     return 0;
 }
@@ -359,10 +359,10 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
     
     parent_lock.swap_lock(&return_child_lock);
 
-    cout_lock.lock();
-    cout << "Parent lock: " << return_parent_lock.pathname << endl;
-    cout << "Child lock: " << return_child_lock.pathname << endl;
-    cout_lock.unlock();
+    // cout_lock.lock();
+    // cout << "Parent lock: " << return_parent_lock.pathname << endl;
+    // cout << "Child lock: " << return_child_lock.pathname << endl;
+    // cout_lock.unlock();
 
     return 0;
 }
