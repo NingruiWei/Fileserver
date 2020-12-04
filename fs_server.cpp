@@ -5,6 +5,7 @@
 #include <string>
 #include <cassert>
 #include <mutex>
+#include <shared_mutex>
 #include <string.h>
 #include <stdio.h>
 #include <algorithm>
