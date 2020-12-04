@@ -131,6 +131,9 @@ int split_string_spaces(vector<std::string> &result, std::string str){
     std::string temp;
     bool first = true;
     for (char c: str){
+        if(c == ' '  || c == '\0'){
+            return -1;
+        }
         if (c == '/'){
             if(first){
                 first = false;
@@ -148,7 +151,7 @@ int split_string_spaces(vector<std::string> &result, std::string str){
     }
     result.push_back(temp);
 
-    reverse(result.begin(), result.end());
+    std::reverse(result.begin(), result.end());
     return 0;
 }
 
