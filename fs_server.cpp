@@ -563,10 +563,12 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
      if (pathname == "/"){
         return -1;
     }
-    
+    fileserver_lock.lock();
     if(blocks_full()){
+        fileserver_lock.unlock();
         return -1;
-    }   
+    }
+    fileserver_lock.unlock();
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
@@ -601,7 +603,9 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
             }
         curr_entries_full = true;
     }
-    if (blocks_full()){
+    fileserver_lock.lock();
+    if(blocks_full()){
+        fileserver_lock.unlock();
         return -1;
     }
     
@@ -609,7 +613,6 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     //Create new inode and direntry for the file/directory we're creating
     fs_inode temp = create_inode(type, username);
     fs_direntry temp_entry;
-    fileserver_lock.lock();
     temp_entry.inode_block = *available_blocks.begin();
     available_blocks.erase(available_blocks.begin());
     fileserver_lock.unlock();
@@ -633,26 +636,32 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
 
 // search_map returns true if query is already an username in the map
 bool Fileserver::username_in_map(std::string query){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     return password_map.find(query) != password_map.end();
 }
 
 string Fileserver::query_map(std::string query){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     return password_map[query];
 }
 
 int Fileserver::query_session_map_sequence(int session){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     return session_map[session].sequence_num;
 }
 
 void Fileserver::insert_sequence(int sequence, string session){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     session_map[stoi(session)].sequence_num = sequence;
 }
 
 string Fileserver::query_session_map_username(int session){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     return session_map[session].username;
 }
 
 int Fileserver::valid_session_range(){
+    lock_guard<mutex> fs_lock(fileserver_lock);
     return session_map.size() - 1;
 }
 
@@ -692,7 +701,7 @@ void Fileserver::init_fs() {
 // - entries is the table of dir_entries associated with the corresponding block value at i for dir_inode
 // - whenever we create a file or directory, we need to update size and blocks in the root inode
 void Fileserver::read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i) {
-    
+    lock_guard<mutex> fs_lock(fileserver_lock);
     disk_readblock(dir_inode->blocks[i], &entries);
 }
 
