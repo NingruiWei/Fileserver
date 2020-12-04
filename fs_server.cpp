@@ -26,18 +26,20 @@ void deepcopy(fs_direntry* new_one, fs_direntry* original){
     }
 }
 void lock_on_disk(std::string path, bool shared_lock){
-    lock_guard<mutex> lock_map(directory_lock_map_mutex);
+    directory_lock_map_mutex.lock();
+    on_disk_lock *to_lock = &directory_lock_map[path];
     directory_lock_map[path].lock_uses++;
+    directory_lock_map_mutex.unlock();
     if(shared_lock){
         //If this is a shared lock (meant for reading) we need to do a shared locking function
-        directory_lock_map[path].lock.lock_shared();
+        to_lock->lock.lock_shared();
         cout_lock.lock();
         cout << path << " path shared locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
         cout_lock.unlock();
     }
     else{
         //Not a shared lock (meant for writing)
-        directory_lock_map[path].lock.lock();
+        to_lock->lock.lock();
         cout_lock.lock();
         cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
         cout_lock.unlock();
@@ -45,14 +47,15 @@ void lock_on_disk(std::string path, bool shared_lock){
 }
 
 void unlock_on_disk(std::string path, bool shared_lock){
-    lock_guard<mutex> lock_map(directory_lock_map_mutex);
+    lock_guard<mutex> directory_map(directory_lock_map_mutex);
 
     if(directory_lock_map.find(path) == directory_lock_map.end()){
         return; //path does not exist in the map
-    } 
+    }
 
     on_disk_lock *to_unlock = &directory_lock_map[path];
     to_unlock->lock_uses--;
+    
     if(shared_lock){
         to_unlock->lock.unlock_shared();
         cout_lock.lock();

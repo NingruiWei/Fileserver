@@ -147,13 +147,13 @@ int main(int argc, char *argv[])
 
     thread t1(thread1, 0);
     thread t2(thread2, 0);
-    //thread t3(thread3, 0);
+    thread t3(thread3, 0);
     //thread t4(thread4, 0);
     //thread t5(thread5, 0);
 
     t1.join();
     t2.join();
-    //t3.join();
+    t3.join();
     //t4.join();
     //t5.join();
 
