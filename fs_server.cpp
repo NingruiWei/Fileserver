@@ -12,7 +12,9 @@ using namespace std;
 
 extern mutex cout_lock;
 unordered_map<std::string, on_disk_lock> directory_lock_map;
-mutex fileserver_lock;
+mutex available_blocks_mutex;
+mutex directory_lock_map_mutex;
+mutex fileserver_shared_lock;
 
 Fileserver::Fileserver(){}
 
@@ -24,26 +26,26 @@ void deepcopy(fs_direntry* new_one, fs_direntry* original){
     }
 }
 void lock_on_disk(std::string path, bool shared_lock){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> lock_map(directory_lock_map_mutex);
     directory_lock_map[path].lock_uses++;
     if(shared_lock){
         //If this is a shared lock (meant for reading) we need to do a shared locking function
         directory_lock_map[path].lock.lock_shared();
-        // cout_lock.lock();
-        // cout << path << " path shared locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        // cout_lock.unlock();
+        cout_lock.lock();
+        cout << path << " path shared locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
     else{
         //Not a shared lock (meant for writing)
         directory_lock_map[path].lock.lock();
-        // cout_lock.lock();
-        // cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        // cout_lock.unlock();
+        cout_lock.lock();
+        cout << path << " path private locked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
 }
 
 void unlock_on_disk(std::string path, bool shared_lock){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> lock_map(directory_lock_map_mutex);
 
     if(directory_lock_map.find(path) == directory_lock_map.end()){
         return; //path does not exist in the map
@@ -51,18 +53,17 @@ void unlock_on_disk(std::string path, bool shared_lock){
 
     on_disk_lock *to_unlock = &directory_lock_map[path];
     to_unlock->lock_uses--;
-    
     if(shared_lock){
         to_unlock->lock.unlock_shared();
-        // cout_lock.lock();
-        // cout << path << " path shared unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        // cout_lock.unlock();
+        cout_lock.lock();
+        cout << path << " path shared unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
     else{
         to_unlock->lock.unlock();
-        // cout_lock.lock();
-        // cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
-        // cout_lock.unlock();
+        cout_lock.lock();
+        cout << path << " path private unlocked with " << directory_lock_map[path].lock_uses << " uses" << endl;
+        cout_lock.unlock();
     }
 
     if(to_unlock->lock_uses == 0){
@@ -83,7 +84,7 @@ bool Fileserver::blocks_full(){
 
 // adds block to inode passed in and returns the block number. If returns -1, then we dont have space either in the inode or we ran out of blocks.
 int Fileserver::add_block_to_inode(fs_inode* curr){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(available_blocks_mutex);
     if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
         return -1;
     }
@@ -371,7 +372,7 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
 
 
 void Fileserver::fill_password_map(){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     std::string username, password;
     while(cin >> username >> password){
         if(password_map.find(username) == password_map.end()){
@@ -390,7 +391,7 @@ void Fileserver::fill_password_map(){
 } // fill_password_map
 
 int Fileserver::handle_fs_session(std::string session, std::string sequence, std::string username){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     session_map_entry temp;
     temp.sequence_num = stoi(sequence); 
     temp.username = username;
@@ -526,7 +527,7 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     // parent_entries is the block number of the direntry table
     // we want
     // curr_inode is the inode in block "curr_inode_block"
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(available_blocks_mutex);
     if(curr_inode.type == 'f'){
         for(size_t i = 0; i < curr_inode.size; ++i){
             available_blocks.insert(curr_inode.blocks[i]);
@@ -553,10 +554,10 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
             } // if 
         }
     }
-    
     else{
         disk_writeblock(parent_entries, curr_entries);
     }
+
    end:
    return 0;
 
@@ -566,12 +567,12 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
      if (pathname == "/"){
         return -1;
     }
-    fileserver_lock.lock();
+    available_blocks_mutex.lock();
     if(blocks_full()){
-        fileserver_lock.unlock();
+        available_blocks_mutex.unlock();
         return -1;
     }
-    fileserver_lock.unlock();
+    available_blocks_mutex.unlock();
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
@@ -606,9 +607,9 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
             }
         curr_entries_full = true;
     }
-    fileserver_lock.lock();
+    available_blocks_mutex.lock();
     if(blocks_full()){
-        fileserver_lock.unlock();
+        available_blocks_mutex.unlock();
         return -1;
     }
     
@@ -618,7 +619,7 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     fs_direntry temp_entry;
     temp_entry.inode_block = *available_blocks.begin();
     available_blocks.erase(available_blocks.begin());
-    fileserver_lock.unlock();
+    available_blocks_mutex.unlock();
     const char * remaining_path = parsed_pathname.back().c_str();
     strcpy(temp_entry.name, remaining_path);
 
@@ -639,38 +640,38 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
 
 // search_map returns true if query is already an username in the map
 bool Fileserver::username_in_map(std::string query){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     return password_map.find(query) != password_map.end();
 }
 
 string Fileserver::query_map(std::string query){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     return password_map[query];
 }
 
 int Fileserver::query_session_map_sequence(int session){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     return session_map[session].sequence_num;
 }
 
 void Fileserver::insert_sequence(int sequence, string session){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     session_map[stoi(session)].sequence_num = sequence;
 }
 
 string Fileserver::query_session_map_username(int session){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     return session_map[session].username;
 }
 
 int Fileserver::valid_session_range(){
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     return session_map.size() - 1;
 }
 
 void Fileserver::init_fs() {
     //available_blocks.resize(FS_MAXFILEBLOCKS);
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(available_blocks_mutex);
     for(size_t i = 1; i < FS_DISKSIZE; ++i){
         available_blocks.insert(i);
     }
@@ -704,7 +705,7 @@ void Fileserver::init_fs() {
 // - entries is the table of dir_entries associated with the corresponding block value at i for dir_inode
 // - whenever we create a file or directory, we need to update size and blocks in the root inode
 void Fileserver::read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i) {
-    lock_guard<mutex> fs_lock(fileserver_lock);
+    lock_guard<mutex> fs_lock(fileserver_shared_lock);
     disk_readblock(dir_inode->blocks[i], &entries);
 }
 

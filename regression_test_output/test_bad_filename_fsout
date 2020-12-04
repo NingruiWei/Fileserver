@@ -1,0 +1,148 @@
+@@@ #1 disk_readblock: block 0
+
+@@@ port 8000
+START WHILE
+New connection 5
+main doing stuff
+START WHILE
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #2 send 5 3 33
+
+@@@ #3 send 5 33 NO_ENCRYPT[password1      ][0 0]
+
+@@@ #4 close 5
+New connection 6
+main doing stuff
+START WHILE
+FS_CREATE 0 1 /dir_lvl1 d
+request message is FS_CREATE
+/ path private locked with 1 uses
+
+@@@ #5 disk_readblock: block 0
+
+@@@ #6 disk_writeblock: block 4094
+
+@@@ #7 disk_writeblock: block 4095
+
+@@@ #8 disk_writeblock: block 0
+/ path private unlocked with 0 uses
+
+@@@ #9 send 6 3 33
+
+@@@ #10 send 6 33 NO_ENCRYPT[password1      ][0 1]
+
+@@@ #11 close 6
+New connection 5
+main doing stuff
+START WHILE
+FS_CREATE 0 2 /file_lvl1 f
+request message is FS_CREATE
+/ path private locked with 1 uses
+
+@@@ #12 disk_readblock: block 0
+
+@@@ #13 disk_readblock: block 4095
+
+@@@ #14 disk_writeblock: block 4093
+
+@@@ #15 disk_writeblock: block 4095
+/ path private unlocked with 0 uses
+
+@@@ #16 send 5 3 33
+
+@@@ #17 send 5 33 NO_ENCRYPT[password1      ][0 2]
+
+@@@ #18 close 5
+New connection 6
+Invalid message received
+
+@@@ #19 close 6
+main doing stuff
+START WHILE
+DECRYPTION HAD INVALID STUFF
+New connection 5
+FS_CREATE 0 4 null_ f
+request message is FS_CREATE
+
+@@@ #20 close 5
+main doing stuff
+START WHILE
+New connection 5
+main doing stuff
+START WHILE
+FS_WRITEBLOCK 0 5 /file_lvl1 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 30
+specified_size = 543
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #21 disk_readblock: block 0
+/ path shared locked with 2 uses
+
+@@@ #22 disk_readblock: block 4095
+/file_lvl1 path private locked with 1 uses
+
+@@@ #23 disk_readblock: block 4093
+/ path shared unlocked with 1 uses
+
+@@@ #24 disk_writeblock: block 4092
+
+@@@ #25 disk_writeblock: block 4093
+/file_lvl1 path private unlocked with 0 uses
+/ path shared unlocked with 0 uses
+
+@@@ #26 send 5 3 33
+
+@@@ #27 send 5 33 NO_ENCRYPT[password1      ][0 5]
+
+@@@ #28 close 5
+New connection 6
+main doing stuff
+START WHILE
+FS_READBLOCK 0 6 /file_lvl1 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #29 disk_readblock: block 0
+/ path shared locked with 2 uses
+
+@@@ #30 disk_readblock: block 4095
+/file_lvl1 path shared locked with 1 uses
+
+@@@ #31 disk_readblock: block 4093
+/ path shared unlocked with 1 uses
+
+@@@ #32 disk_readblock: block 4092
+/file_lvl1 path shared unlocked with 0 uses
+/ path shared unlocked with 0 uses
+DATA: We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+
+@@@ #33 send 6 4 545
+
+@@@ #34 send 6 545 NO_ENCRYPT[password1      ][0 6We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying]
+
+@@@ #35 close 6
+New connection 5
+main doing stuff
+START WHILE
+FS_DELETE 0 7 /dir_lvl1/file_lvl2
+request message is FS_DELETE
+/ path shared locked with 1 uses
+
+@@@ #36 disk_readblock: block 0
+
+@@@ #37 disk_readblock: block 4095
+/dir_lvl1/ path private locked with 1 uses
+
+@@@ #38 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+/dir_lvl1/file_lvl2 path private locked with 1 uses
+/dir_lvl1/file_lvl2 path private unlocked with 0 uses
+/dir_lvl1/ path private unlocked with 0 uses
+
+@@@ #39 close 5
