@@ -170,8 +170,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     parent_entries_block = 0;
     parent_inode_block = 0;
     string travelled_path = "/";
-    bool shared_status = (parsed_pathname.size() - 1) != 0;
-    path_lock parent_lock(travelled_path, shared_status);
+    bool shared_status = parsed_pathname.size() > 1;
     int loop = 0;
     while(parsed_pathname.size() > 1){  
         for(size_t i = 0; i < curr_inode->size; ++i){
@@ -197,7 +196,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
         if(loop == 0 && strcmp(curr_inode->owner, username.c_str()) != 0 ){
             return -1;
         }
-        parent_lock.swap_lock(&child_lock);
+        return_parent_lock.swap_lock(&child_lock);
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         ++loop;
     }
@@ -226,7 +225,6 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     return -1; // didn't find a matching filename to delete;
    
     end:
-    parent_lock.swap_lock(&return_parent_lock);
 
     // cout_lock.lock();
     // cout << "Parent lock: " << return_parent_lock.pathname << endl;
@@ -485,6 +483,7 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     return 0;
    
 }
+
 bool no_entries(fs_direntry* curr){
     for(size_t i = 0; i < FS_DIRENTRIES; ++i){
         if(curr[i].inode_block != 0){
@@ -502,14 +501,15 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
     } 
+
+    path_lock parent_lock("/", parsed_pathname.size() > 1), to_delete_lock;
+
     fs_inode curr_inode, parent_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
     
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int curr_inode_block = 0, parent_entries = 0, parent_entries_index = -1, parent_node_block;
     string username = session_map[stoi(session)].username;
-
-    path_lock parent_lock, to_delete_lock;
 
     if(traverse_pathname_delete(parsed_pathname, &curr_inode, curr_entries, curr_inode_block, parent_entries, &parent_inode, parent_entries_index, parent_node_block, username, parent_lock, to_delete_lock) == -1){
         return -1;
