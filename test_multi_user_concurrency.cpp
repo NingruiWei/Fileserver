@@ -32,8 +32,8 @@ void thread1(int val){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     cout << "Thread 1: " << string(readdata, 512) << endl;
 
-    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4/file_lvl5");
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user1", "password1", session, seq++, "/user1_dir_lvl1/user1_file_lvl2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4/dir_lvl5");
     // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
@@ -54,8 +54,8 @@ void thread2(int val){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     cout << "Thread 2: " << string(readdata, 512) << endl;
 
-    // fs_delete("user2", "password2", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/file_lvl4");
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user2", "password2", session, seq++, "/user2_dir_lvl1/user2_file_lvl2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     // fs_delete("user2", "password2", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4");
     // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
@@ -76,8 +76,8 @@ void thread3(int val){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     cout << "Thread 3: " << string(readdata, 512) << endl;
 
-    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/file_lvl3");
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user1", "password1", session, seq++, "/user1_file_lvl1");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3");
     // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
@@ -98,8 +98,8 @@ void thread4(int val){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     cout << "Thread 4: " << string(readdata, 512) << endl;
 
-    // fs_delete("user2", "password2", session, seq++, "/dir_lvl1/file_lvl2");
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user2", "password2", session, seq++, "/user2_file_lvl1");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     // fs_delete("user2", "password2", session, seq++, "/dir_lvl1/dir_lvl2");
     // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
@@ -143,10 +143,14 @@ void thread5(int val){
     std::this_thread::sleep_for(std::chrono::seconds(1));
     cout << "Thread 5 Part 4: " << string(readdata, 512) << endl;
 
-    // fs_delete("user3", "password3", session, seq++, "/file_lvl1");
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
-    // fs_delete("user3", "password3", session, seq++, "/dir_lvl1");
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user1", "password1", session, seq++, "/user1_dir_lvl1/user1_dir_lvl2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user2", "password2", other_session, other_seq++, "/user2_dir_lvl1/user2_dir_lvl2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user1", "password1", session, seq++, "/user1_dir_lvl1");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    fs_delete("user2", "password2", other_session, other_seq++, "/user2_dir_lvl1");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 int main(int argc, char *argv[])
