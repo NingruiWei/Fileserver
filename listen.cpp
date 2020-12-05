@@ -160,6 +160,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	//string size_encrypted;
 	do {
 		rval = recv(connectionfd, msg, 1, MSG_WAITALL);
+		if (rval == -1) {
+			close(connectionfd);
+			return -1;
+		}
 
 		//Just recv until first null character, then we'll check if username is valid and if it is, we can recv size for entire encrypted message all at once.
 
@@ -197,7 +201,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	}
 
 	char encrypted_msg[stoi(size)];
-	recv(connectionfd, encrypted_msg, stoi(size), MSG_WAITALL); //recv exactly the number of bits the sender says the encrypted message
+	if (recv(connectionfd, encrypted_msg, stoi(size), MSG_WAITALL) != stoi(size)) {
+		close(connectionfd);
+		return -1;
+	} //recv exactly the number of bits the sender says the encrypted message
 	string encrypted = string(encrypted_msg, stoi(size));
 	
 	//decrypt the message and store in char[]
