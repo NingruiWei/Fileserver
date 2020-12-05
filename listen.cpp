@@ -184,7 +184,10 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	//Check username validity, then recv size for encrypted message (which we can unencrypt the same way we currently do)
 	stringstream cleartext_for_encrypted(clear_text);
 	string username, size;
-	cleartext_for_encrypted >> username >> size;
+	if (!(cleartext_for_encrypted >> username >> size)) {
+		close(connectionfd);
+		return -1;
+	}
 	if(!main_fileserver.username_in_map(username)){
 		cout_lock.lock();
 		cout << "Invalid username" << endl;

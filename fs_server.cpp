@@ -462,7 +462,7 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     string username = session_map[stoi(session)].username;
 
     if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false, username, parent_lock, child_lock) == -1){
-        //travesal failed due to an invalid pathname, tell listen to close connection
+        //traversal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
    
