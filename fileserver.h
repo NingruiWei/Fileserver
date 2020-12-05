@@ -24,7 +24,7 @@ struct session_map_entry{
 
 struct on_disk_lock{
     int lock_uses;
-    shared_mutex lock;
+    std::shared_mutex lock;
 };
 
 void lock_on_disk(std::string path, bool shared_lock);
