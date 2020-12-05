@@ -8,24 +8,29 @@
 #include <shared_mutex>
 #include <string.h>
 #include <stdio.h>
+//These are commented out so that we avoid submitting our sleeps during an actual submission. Uncomment for concurrency testing
+//#include <thread>
+//#include <chrono>
 #include <algorithm>
 using namespace std;
 
 extern mutex cout_lock;
 unordered_map<std::string, on_disk_lock> directory_lock_map;
-mutex available_blocks_mutex;
-mutex directory_lock_map_mutex;
-mutex fileserver_shared_lock;
+std::mutex available_blocks_mutex;
+std::mutex directory_lock_map_mutex;
+std::mutex fileserver_shared_lock;
 
 Fileserver::Fileserver(){}
 
 Fileserver::~Fileserver(){}
+
 void deepcopy(fs_direntry* new_one, fs_direntry* original){
     for(size_t i = 0; i < FS_DIRENTRIES; ++i){
         strcpy(new_one[i].name, original[i].name);
         new_one[i].inode_block = original[i].inode_block;
     }
 }
+
 void lock_on_disk(std::string path, bool shared_lock){
     directory_lock_map_mutex.lock();
     on_disk_lock *to_lock = &directory_lock_map[path];
@@ -326,7 +331,8 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
 
     string travelled_path = "/";
     bool shared_status = true; //The root is always shared for read and write (you cannot write the root and read is always shared)
-    path_lock parent_lock(travelled_path, shared_status);
+    path_lock parent_lock;
+    parent_lock.swap_lock(&return_parent_lock);
     int loop = 0;
     while((parsed_pathname.size() > 0)){ //While we still have more than just the new directory/file we're interest in creating
         
@@ -351,15 +357,14 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         if(parsed_pathname.size() > 1){
             travelled_path += "/";
         }
-        parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
-        shared_status = (parsed_pathname.size() > 0 || fs_read); //We only privately lock the thing we're interested in writing to, reading is always a shared lock
+        shared_status = (parsed_pathname.size() > 1 || fs_read); //We only privately lock the thing we're interested in writing to, reading is always a shared lock
         path_lock child_lock(travelled_path, shared_status);
         disk_readblock(parent_inode_block, curr_inode); //Read in the next inode we're concerned with
         if(loop == 0 && strcmp(curr_inode->owner, username.c_str()) != 0){
                 return -1; // check to see that the username matches directory
             }
         parent_lock.swap_lock(&child_lock);
-        child_lock.swap_lock(&return_parent_lock);
+        parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         ++loop;
     }
     
@@ -423,7 +428,25 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
 
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int parent_inode, parent_entries;
+    fileserver_shared_lock.lock();
     string username = session_map[stoi(session)].username;
+    fileserver_shared_lock.unlock();
+
+    //Uncomment to test concurrency for users being blocked (or not blocked) on shared pathname
+    // if(stoi(sequence) < 4){
+    //     cout_lock.lock();
+    //     cout << "t1 blocking" << endl;
+    //     cout_lock.unlock();
+    //     std::this_thread::sleep_for(std::chrono::seconds(90));
+    //     cout_lock.lock();
+    //     cout << "user1 finished blocking" << endl;
+    //     cout_lock.unlock();
+    // }
+    // else{
+    //     cout_lock.lock();
+    //     cout << "past t1 blocking" << endl;
+    //     cout_lock.unlock();
+    // }
 
 
     if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, true, username, parent_lock, child_lock) == -1){
@@ -459,12 +482,31 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     disk_readblock(0, &curr_inode);
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int parent_inode_block = 0, parent_entries_block;
+    fileserver_shared_lock.lock();
     string username = session_map[stoi(session)].username;
+    fileserver_shared_lock.unlock();
+
+    //Uncomment to test concurrency for users being blocked (or not blocked) on shared pathname
 
     if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false, username, parent_lock, child_lock) == -1){
         //traversal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
+
+    // if(stoi(sequence) < 3){
+    //     cout_lock.lock();
+    //     cout << "user1 blocking" << endl;
+    //     cout_lock.unlock();
+    //     std::this_thread::sleep_for(std::chrono::seconds(90));
+    //     cout_lock.lock();
+    //     cout << "user1 finished blocking" << endl;
+    //     cout_lock.unlock();
+    // }
+    // else{
+    //     cout_lock.lock();
+    //     cout << "user2 past user1 blocking" << endl;
+    //     cout_lock.unlock();
+    // }
    
     if(curr_inode.type != 'f'){
         return -1;
@@ -517,7 +559,25 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     int curr_inode_block = 0, parent_entries = 0, parent_entries_index = -1, parent_node_block;
+    fileserver_shared_lock.lock();
     string username = session_map[stoi(session)].username;
+    fileserver_shared_lock.unlock();
+
+    //Uncomment to test concurrency for users being blocked (or not blocked) on shared pathname
+    // if(username == "user1"){
+    //     cout_lock.lock();
+    //     cout << "user1 blocking" << endl;
+    //     cout_lock.unlock();
+    //     std::this_thread::sleep_for(std::chrono::seconds(90));
+    //     cout_lock.lock();
+    //     cout << "user1 finished blocking" << endl;
+    //     cout_lock.unlock();
+    // }
+    // else{
+    //     cout_lock.lock();
+    //     cout << "user2 past user1 blocking" << endl;
+    //     cout_lock.unlock();
+    // }
 
     if(traverse_pathname_delete(parsed_pathname, &curr_inode, curr_entries, curr_inode_block, parent_entries, &parent_inode, parent_entries_index, parent_node_block, username, parent_lock, to_delete_lock) == -1){
         return -1;
@@ -587,7 +647,26 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     path_lock parent_lock("/", parsed_pathname.size() > 1);
     
     disk_readblock(0, &curr_inode);
+    fileserver_shared_lock.lock();
     string username = session_map[stoi(session)].username;
+    fileserver_shared_lock.unlock();
+
+    //Uncomment to test concurrency for users being blocked (or not blocked) on shared pathname
+    // if(username == "user1"){
+    //     cout_lock.lock();
+    //     cout << "user1 blocking" << endl;
+    //     cout_lock.unlock();
+    //     std::this_thread::sleep_for(std::chrono::seconds(90));
+    //     cout_lock.lock();
+    //     cout << "user1 finished blocking" << endl;
+    //     cout_lock.unlock();
+    // }
+    // else{
+    //     cout_lock.lock();
+    //     cout << "user2 past user1 blocking" << endl;
+    //     cout_lock.unlock();
+    // }
+
     fs_direntry curr_entries[FS_DIRENTRIES]; //Will be an array of the direntries that are associated with the current inode
     for(size_t i = 0; i < FS_DIRENTRIES; ++i){ // initializes it all to 0 for now
         curr_entries[i].inode_block = 0;
