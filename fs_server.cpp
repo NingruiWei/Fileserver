@@ -214,8 +214,6 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
         ++loop;
     }
 
-    travelled_path += parsed_pathname.back();
-    return_to_delete_lock.new_lock(travelled_path, false);
     parent_inode->type = curr_inode->type;
     strcpy(parent_inode->owner, curr_inode->owner);
     parent_inode->size = curr_inode->size;
@@ -238,7 +236,8 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     return -1; // didn't find a matching filename to delete;
    
     end:
-
+    travelled_path += parsed_pathname.back();
+    return_to_delete_lock.new_lock(travelled_path, false);
     // cout_lock.lock();
     // cout << "Parent lock: " << return_parent_lock.pathname << endl;
     // cout << "Delete lock: " << return_to_delete_lock.pathname << endl;
@@ -324,15 +323,13 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
     return 0;
 }
 int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode* curr_inode, 
-            fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool fs_read, string username, path_lock &return_parent_lock, path_lock &return_child_lock){
+            fs_direntry curr_entries[], int &parent_inode_block, int &parent_entries_block, bool fs_read, string username, path_lock &return_parent_lock){
     
     parent_inode_block = 0;
     parent_entries_block = 0;
 
     string travelled_path = "/";
     bool shared_status = true; //The root is always shared for read and write (you cannot write the root and read is always shared)
-    path_lock parent_lock;
-    parent_lock.swap_lock(&return_parent_lock);
     int loop = 0;
     while((parsed_pathname.size() > 0)){ //While we still have more than just the new directory/file we're interest in creating
         
@@ -363,12 +360,10 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         if(loop == 0 && strcmp(curr_inode->owner, username.c_str()) != 0){
                 return -1; // check to see that the username matches directory
             }
-        parent_lock.swap_lock(&child_lock);
+        return_parent_lock.swap_lock(&child_lock);
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         ++loop;
     }
-    
-    parent_lock.swap_lock(&return_child_lock);
 
     // cout_lock.lock();
     // cout << "Parent lock: " << return_parent_lock.pathname << endl;
@@ -421,7 +416,7 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
         return -1;
     } 
 
-    path_lock parent_lock("/", true), child_lock;
+    path_lock parent_lock("/", true);
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
@@ -449,7 +444,7 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
     // }
 
 
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, true, username, parent_lock, child_lock) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode, parent_entries, true, username, parent_lock) == -1){
         //travesal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
@@ -476,7 +471,7 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     } 
     string remain = parsed_pathname.front();
 
-    path_lock parent_lock("/", true), child_lock;
+    path_lock parent_lock("/", true);
 
     fs_inode curr_inode; //Start at root_inode, but this will keep track of which inode we're currently looking at
     disk_readblock(0, &curr_inode);
@@ -488,7 +483,7 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
 
     //Uncomment to test concurrency for users being blocked (or not blocked) on shared pathname
 
-    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false, username, parent_lock, child_lock) == -1){
+    if(traverse_pathname(parsed_pathname, &curr_inode, curr_entries, parent_inode_block, parent_entries_block, false, username, parent_lock) == -1){
         //traversal failed due to an invalid pathname, tell listen to close connection
         return -1;
     }
