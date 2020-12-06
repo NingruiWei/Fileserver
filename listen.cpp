@@ -233,7 +233,8 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		close(connectionfd);
 		return -1;
 	}
-
+	
+	main_fileserver.insert_sequence(stoi(sequence), session);
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
 		return_message = to_string(new_session_id) + " " + sequence;
@@ -282,7 +283,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		cout_lock.lock();
 		cout << data << endl;
 		cout_lock.unlock();
-
+		
 		if(main_fileserver.handle_fs_writeblock(session, sequence, pathname, block_or_type, data) == -1){
 			close(connectionfd);
 			return -1;
@@ -345,7 +346,6 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	}
 
 	//Close connection and return successfully
-	main_fileserver.insert_sequence(stoi(sequence), session);
 	close(connectionfd);
 	return 0;
 }
