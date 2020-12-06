@@ -87,14 +87,13 @@ bool direntry_full(fs_inode* curr){ // passed in should the inode in question
     return true; // no room found so it is full
 }
 
-bool Fileserver::blocks_full(){
-    return available_blocks.empty();
+bool Fileserver::check_avaiable_blocks_size(unsigned int reserve_size){
+    return available_blocks.size() >= reserve_size;
 }
 
 // adds block to inode passed in and returns the block number. If returns -1, then we dont have space either in the inode or we ran out of blocks.
 int Fileserver::add_block_to_inode(fs_inode* curr){
-    lock_guard<mutex> fs_lock(available_blocks_mutex);
-    if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
+    if(curr->size == FS_MAXFILEBLOCKS) { // reached max space in inode already, we assume that they will have already determined that they have enough blocks to do what they need to do
         return -1;
     }
 
@@ -367,7 +366,6 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
 
     // cout_lock.lock();
     // cout << "Parent lock: " << return_parent_lock.pathname << endl;
-    // cout << "Child lock: " << return_child_lock.pathname << endl;
     // cout_lock.unlock();
 
     return 0;
@@ -513,10 +511,17 @@ int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, 
     int write_to_block;
     if( (size_t) block > curr_inode.size){return -1;}
     else if((size_t)block == curr_inode.size){
-        int check = add_block_to_inode(&curr_inode);
-        if(check == -1){
+        available_blocks_mutex.lock();
+        if(!check_avaiable_blocks_size(1)){
+            available_blocks_mutex.unlock();
             return -1;
         }
+        int check = add_block_to_inode(&curr_inode);
+        if(check == -1){
+            available_blocks_mutex.unlock();
+            return -1;
+        }
+        available_blocks_mutex.unlock();
         write_to_block = check;
         disk_writeblock(write_to_block, data);
         disk_writeblock(parent_inode_block, &curr_inode);
@@ -627,7 +632,7 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
         return -1;
     }
     available_blocks_mutex.lock();
-    if(blocks_full()){
+    if(!check_avaiable_blocks_size(1)){ //Make sure there's at least 1 block for a create (may need as many as 2, but assume we only need 1 to begin carrying out our action)
         available_blocks_mutex.unlock();
         return -1;
     }
@@ -674,8 +679,14 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
     }
     // if no room currently to add new direntry
 
+    available_blocks_mutex.lock();
+
     bool curr_entries_full = false;
     if(parent_entries_block == 0){
+        if(!check_avaiable_blocks_size(2)){
+            available_blocks_mutex.unlock();
+            return -1;
+        }
         parent_entries_block = add_block_to_inode(&curr_inode);
         if (parent_entries_block == -1){
             return -1;
@@ -685,8 +696,7 @@ int Fileserver::handle_fs_create(std::string session, std::string sequence, std:
             }
         curr_entries_full = true;
     }
-    available_blocks_mutex.lock();
-    if(blocks_full()){
+    else if(!check_avaiable_blocks_size(1)){
         available_blocks_mutex.unlock();
         return -1;
     }

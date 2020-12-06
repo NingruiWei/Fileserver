@@ -34,8 +34,8 @@ void thread1(int val){
 
     fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4/file_lvl5");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4/dir_lvl5");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4/dir_lvl5");
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void thread2(int val){
@@ -56,8 +56,8 @@ void thread2(int val){
 
     fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/file_lvl4");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3/dir_lvl4");
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void thread3(int val){
@@ -78,8 +78,8 @@ void thread3(int val){
 
     fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/file_lvl3");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2/dir_lvl3");
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void thread4(int val){
@@ -100,8 +100,8 @@ void thread4(int val){
 
     fs_delete("user1", "password1", session, seq++, "/dir_lvl1/file_lvl2");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1/dir_lvl2");
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void thread5(int val){
@@ -122,8 +122,8 @@ void thread5(int val){
 
     fs_delete("user1", "password1", session, seq++, "/file_lvl1");
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    fs_delete("user1", "password1", session, seq++, "/dir_lvl1");
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // fs_delete("user1", "password1", session, seq++, "/dir_lvl1");
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 int main(int argc, char *argv[])

@@ -76,7 +76,7 @@ class Fileserver{
     public:
         Fileserver();
         ~Fileserver();
-        bool blocks_full();
+        bool check_avaiable_blocks_size(unsigned int reserve_size);
         int handle_fs_session(std::string session, std::string sequence, std::string username);
         int handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* readdata);
         int handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data);
