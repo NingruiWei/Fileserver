@@ -264,6 +264,7 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         
         for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
+            
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
                 if( curr_entries[j].inode_block != 0 && strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
                     parent_inode_block = curr_entries[j].inode_block;
@@ -289,7 +290,10 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         ++loop;
     }
-    
+    if(curr_inode->type == 'f'){
+            //File should only ever be the last thing along the path, if it's not it should be an error. Double check this assumption
+            return -1;
+            }
     // once we have found the inode we are inserting in we see if there's already space or not in the thing
     bool found = false;
     for(size_t i = 0; i < curr_inode->size; i++){
