@@ -409,6 +409,9 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
      if (pathname == "/"){
         return -1;
     }
+    if (pathname.size() > MAXFILENAME){
+        return -1;
+    }
     int block = stoi(block_or_type);
     if (block > 123 || block < 0){
         return -1;
@@ -461,6 +464,9 @@ int Fileserver::handle_fs_readblock(std::string session, std::string sequence, s
 
 int Fileserver::handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data){
      if (pathname == "/"){
+        return -1;
+    }
+    if (pathname.size() > MAXFILENAME){
         return -1;
     }
     int block = stoi(block_or_type);
@@ -551,6 +557,9 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
     if (pathname == "/"){
         return -1;
     }
+    if (pathname.size() > MAXFILENAME){
+        return -1;
+    }
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
@@ -633,6 +642,9 @@ int Fileserver::handle_fs_delete(std::string session, std::string sequence, std:
 
 int Fileserver::handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type){
      if (pathname == "/"){
+        return -1;
+    }
+    if (pathname.size() > MAXFILENAME){
         return -1;
     }
     available_blocks_mutex.lock();
