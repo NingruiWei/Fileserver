@@ -1,0 +1,12 @@
+/ (type d) (inode block 0)
+        owner: 
+        size: 1
+        data disk blocks: 4095 
+        entry 6: jared, inode block 4088
+
+/jared (type d) (inode block 4088)
+        owner: user1
+        size: 0
+        data disk blocks: 
+
+4093 disk blocks free

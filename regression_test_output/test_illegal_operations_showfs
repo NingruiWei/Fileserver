@@ -1,0 +1,12 @@
+/ (type d) (inode block 0)
+        owner: 
+        size: 1
+        data disk blocks: 4095 
+        entry 1: invalid_sequence_num, inode block 4091
+
+/invalid_sequence_num (type d) (inode block 4091)
+        owner: user2
+        size: 0
+        data disk blocks: 
+
+4093 disk blocks free

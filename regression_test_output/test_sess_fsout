@@ -1,0 +1,83 @@
+
+@@@ #1 disk_readblock: block 0
+
+@@@ port 8000
+START WHILE
+main doing stuff
+START WHILE
+New connection 5
+Session number is invalid
+Invalid message received
+
+@@@ #2 close 5
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 6
+Session number is invalid
+Invalid message received
+
+@@@ #3 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+FS_SESSION 0 1
+request message is FS_SESSION
+
+@@@ #4 send 5 3 33 
+
+@@@ #5 send 5 33 NO_ENCRYPT[password1      ][0 1 ]
+
+@@@ #6 close 5
+main doing stuff
+START WHILE
+New connection 6
+Session number is invalid
+Invalid message received
+
+@@@ #7 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+FS_SESSION 0 1
+request message is FS_SESSION
+
+@@@ #8 send 5 3 33 
+
+@@@ #9 send 5 33 NO_ENCRYPT[password2      ][1 1 ]
+
+@@@ #10 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 1 2 /impact d
+request message is FS_CREATE
+
+@@@ #11 close 6
+main doing stuff
+START WHILE
+New connection 5
+Decryption failed
+
+@@@ #12 close 5
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 6
+Decryption failed
+
+@@@ #13 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+
+@@@ #14 close 5
+main doing stuff
+START WHILE
+New connection 6
+Invalid username
+
+@@@ #15 close 6

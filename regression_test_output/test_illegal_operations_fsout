@@ -1,0 +1,483 @@
+
+@@@ #1 disk_readblock: block 0
+
+@@@ port 8000
+START WHILE
+main doing stuff
+START WHILE
+New connection 5
+Decryption failed
+
+@@@ #2 close 5
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 6
+FS_SESSION 0 1
+request message is FS_SESSION
+
+@@@ #3 send 6 3 33 
+
+@@@ #4 send 6 33 NO_ENCRYPT[password1      ][0 1 ]
+
+@@@ #5 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #6 send 5 3 33 
+
+@@@ #7 send 5 33 NO_ENCRYPT[password2      ][1 0 ]
+
+@@@ #8 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_SESSION 0 0
+request message is FS_SESSION
+
+@@@ #9 send 6 3 33 
+
+@@@ #10 send 6 33 NO_ENCRYPT[password2      ][2 0 ]
+
+@@@ #11 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 2 /wrond_session_num d
+request message is FS_CREATE
+
+@@@ #12 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_CREATE 1 1 /right_session_num_dir d
+request message is FS_CREATE
+/ path private locked with 1 uses
+
+@@@ #13 disk_readblock: block 0
+
+@@@ #14 disk_writeblock: block 4094
+
+@@@ #15 disk_writeblock: block 4095
+
+@@@ #16 disk_writeblock: block 0
+/ path private unlocked with 0 uses
+
+@@@ #17 send 6 3 33 
+
+@@@ #18 send 6 33 NO_ENCRYPT[password2      ][1 1 ]
+
+@@@ #19 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 1 2 /right_session_num_dir/file f
+request message is FS_CREATE
+/ path shared locked with 1 uses
+
+@@@ #20 disk_readblock: block 0
+
+@@@ #21 disk_readblock: block 4095
+/right_session_num_dir/ path private locked with 1 uses
+
+@@@ #22 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #23 disk_writeblock: block 4092
+
+@@@ #24 disk_writeblock: block 4093
+
+@@@ #25 disk_writeblock: block 4094
+/right_session_num_dir/ path private unlocked with 0 uses
+
+@@@ #26 send 5 3 33 
+
+@@@ #27 send 5 33 NO_ENCRYPT[password2      ][1 2 ]
+
+@@@ #28 close 5
+main doing stuff
+START WHILE
+New connection 6
+Session number is invalid
+Invalid message received
+
+@@@ #29 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 2 1 /invalid_sequence_num d
+request message is FS_CREATE
+/ path private locked with 1 uses
+
+@@@ #30 disk_readblock: block 0
+
+@@@ #31 disk_readblock: block 4095
+
+@@@ #32 disk_writeblock: block 4091
+
+@@@ #33 disk_writeblock: block 4095
+/ path private unlocked with 0 uses
+
+@@@ #34 send 5 3 33 
+
+@@@ #35 send 5 33 NO_ENCRYPT[password2      ][2 1 ]
+
+@@@ #36 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_WRITEBLOCK 1 4 /right_session_num_dir 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 42
+specified_size = 555
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #37 disk_readblock: block 0
+
+@@@ #38 disk_readblock: block 4095
+/right_session_num_dir path private locked with 1 uses
+
+@@@ #39 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+/right_session_num_dir path private unlocked with 0 uses
+
+@@@ #40 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 1 5 /right_session_num_dir/file 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 47
+specified_size = 560
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #41 disk_readblock: block 0
+
+@@@ #42 disk_readblock: block 4095
+/right_session_num_dir/ path shared locked with 1 uses
+
+@@@ #43 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #44 disk_readblock: block 4093
+/right_session_num_dir/file path private locked with 1 uses
+
+@@@ #45 disk_readblock: block 4092
+/right_session_num_dir/ path shared unlocked with 0 uses
+
+@@@ #46 disk_writeblock: block 4090
+
+@@@ #47 disk_writeblock: block 4092
+/right_session_num_dir/file path private unlocked with 0 uses
+
+@@@ #48 send 5 3 33 
+
+@@@ #49 send 5 33 NO_ENCRYPT[password2      ][1 5 ]
+
+@@@ #50 close 5
+main doing stuff
+START WHILE
+New connection 6
+Sequence number is invalid
+Invalid message received
+
+@@@ #51 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 2 2 /right_session_num_dir/file 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 47
+specified_size = 560
+Uruguayans (Spanish: uruguayos) are people identified with the country of Uruguay, through citizenship or descent. Uruguay is home to people of different ethnic origins. As a result, many Uruguayans do not equate their nationality with ethnicity, but with citizenship and their allegiance to Uruguay. Colloquially, primarily among other Spanish-speaking Latin American nations, Uruguayans are also referred to as 
+/ path shared locked with 1 uses
+
+@@@ #52 disk_readblock: block 0
+
+@@@ #53 disk_readblock: block 4095
+/right_session_num_dir/ path shared locked with 1 uses
+
+@@@ #54 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #55 disk_readblock: block 4093
+/right_session_num_dir/file path private locked with 1 uses
+
+@@@ #56 disk_readblock: block 4092
+/right_session_num_dir/ path shared unlocked with 0 uses
+
+@@@ #57 disk_writeblock: block 4090
+/right_session_num_dir/file path private unlocked with 0 uses
+
+@@@ #58 send 5 3 33 
+
+@@@ #59 send 5 33 NO_ENCRYPT[password2      ][2 2 ]
+
+@@@ #60 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_READBLOCK 1 6 /right_session_num_dir/file 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #61 disk_readblock: block 0
+
+@@@ #62 disk_readblock: block 4095
+/right_session_num_dir/ path shared locked with 1 uses
+
+@@@ #63 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #64 disk_readblock: block 4093
+/right_session_num_dir/file path shared locked with 1 uses
+
+@@@ #65 disk_readblock: block 4092
+/right_session_num_dir/ path shared unlocked with 0 uses
+
+@@@ #66 disk_readblock: block 4090
+/right_session_num_dir/file path shared unlocked with 0 uses
+DATA: Uruguayans (Spanish: uruguayos) are people identified with the country of Uruguay, through citizenship or descent. Uruguay is home to people of different ethnic origins. As a result, many Uruguayans do not equate their nationality with ethnicity, but with citizenship and their allegiance to Uruguay. Colloquially, primarily among other Spanish-speaking Latin American nations, Uruguayans are also referred to as  error: usage:   <server> <serverPort>
+ reaching here clientinit finished password3 user1 password1
+
+@@@ #67 send 6 4 545 
+
+@@@ #68 send 6 545 NO_ENCRYPT[password2      ][1 6 Uruguayans (Spanish: uruguayos) are people identified with the country of Uruguay, through citizenship or descent. Uruguay is home to people of different ethnic origins. As a result, many Uruguayans do not equate their nationality with ethnicity, but with citizenship and their allegiance to Uruguay. Colloquially, primarily among other Spanish-speaking Latin American nations, Uruguayans are also referred to as  error: usage:   <server> <serverPort>
+ reaching here clientinit finished password3 user1 password1]
+
+@@@ #69 close 6
+main doing stuff
+START WHILE
+New connection 5
+Session number is invalid
+Invalid message received
+
+@@@ #70 close 5
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 6
+Session number is invalid
+Invalid message received
+
+@@@ #71 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+Sequence number is invalid
+Invalid message received
+
+@@@ #72 close 5
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 6
+Sequence number is invalid
+Invalid message received
+
+@@@ #73 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 0 3 /right_session_num_dir/file 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 47
+specified_size = 560
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #74 disk_readblock: block 0
+
+@@@ #75 disk_readblock: block 4095
+/right_session_num_dir/ path shared locked with 1 uses
+
+@@@ #76 disk_readblock: block 4094
+/right_session_num_dir/ path shared unlocked with 0 uses
+/ path shared unlocked with 0 uses
+
+@@@ #77 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_READBLOCK 0 4 /right_session_num_dir/file 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #78 disk_readblock: block 0
+
+@@@ #79 disk_readblock: block 4095
+/right_session_num_dir/ path shared locked with 1 uses
+
+@@@ #80 disk_readblock: block 4094
+/right_session_num_dir/ path shared unlocked with 0 uses
+/ path shared unlocked with 0 uses
+
+@@@ #81 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_DELETE 0 5 /right_session_num_dir
+request message is FS_DELETE
+/ path private locked with 1 uses
+
+@@@ #82 disk_readblock: block 0
+
+@@@ #83 disk_readblock: block 4095
+/right_session_num_dir path private locked with 1 uses
+
+@@@ #84 disk_readblock: block 4094
+/right_session_num_dir path private unlocked with 0 uses
+/ path private unlocked with 0 uses
+
+@@@ #85 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 1 8 /right_session_num_dir
+request message is FS_DELETE
+/ path private locked with 1 uses
+
+@@@ #86 disk_readblock: block 0
+
+@@@ #87 disk_readblock: block 4095
+/right_session_num_dir path private locked with 1 uses
+
+@@@ #88 disk_readblock: block 4094
+/right_session_num_dir path private unlocked with 0 uses
+/ path private unlocked with 0 uses
+
+@@@ #89 close 6
+main doing stuff
+START WHILE
+New connection 5
+Session number is invalid
+Invalid message received
+
+@@@ #90 close 5
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 6
+Sequence number is invalid
+Invalid message received
+
+@@@ #91 close 6
+DECRYPTION HAD INVALID STUFF
+main doing stuff
+START WHILE
+New connection 5
+FS_DELETE 1 10 /right_session_num_dir/file
+request message is FS_DELETE
+/ path shared locked with 1 uses
+
+@@@ #92 disk_readblock: block 0
+
+@@@ #93 disk_readblock: block 4095
+/right_session_num_dir/ path private locked with 1 uses
+
+@@@ #94 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #95 disk_readblock: block 4093
+/right_session_num_dir/file path private locked with 1 uses
+
+@@@ #96 disk_readblock: block 4092
+
+@@@ #97 disk_writeblock: block 4094
+/right_session_num_dir/file path private unlocked with 0 uses
+/right_session_num_dir/ path private unlocked with 0 uses
+
+@@@ #98 send 5 3 34 
+
+@@@ #99 send 5 34 NO_ENCRYPT[password2      ][1 10 ]
+
+@@@ #100 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 2 4 /right_session_num_dir
+request message is FS_DELETE
+/ path private locked with 1 uses
+
+@@@ #101 disk_readblock: block 0
+
+@@@ #102 disk_readblock: block 4095
+/right_session_num_dir path private locked with 1 uses
+
+@@@ #103 disk_readblock: block 4094
+
+@@@ #104 disk_writeblock: block 4095
+/right_session_num_dir path private unlocked with 0 uses
+/ path private unlocked with 0 uses
+
+@@@ #105 send 6 3 33 
+
+@@@ #106 send 6 33 NO_ENCRYPT[password2      ][2 4 ]
+
+@@@ #107 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 1 11 /right_session_num_dir/file f
+request message is FS_CREATE
+/ path shared locked with 1 uses
+
+@@@ #108 disk_readblock: block 0
+
+@@@ #109 disk_readblock: block 4095
+/ path shared unlocked with 0 uses
+
+@@@ #110 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_WRITEBLOCK 1 12 /right_session_num_dir/file 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 48
+specified_size = 561
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #111 disk_readblock: block 0
+
+@@@ #112 disk_readblock: block 4095
+/ path shared unlocked with 0 uses
+
+@@@ #113 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_READBLOCK 2 5 /right_session_num_dir/file 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #114 disk_readblock: block 0
+
+@@@ #115 disk_readblock: block 4095
+/ path shared unlocked with 0 uses
+
+@@@ #116 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 0 6 /
+request message is FS_DELETE
+
+@@@ #117 close 6
