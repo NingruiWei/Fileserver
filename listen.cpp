@@ -234,7 +234,6 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return -1;
 	}
 	
-	main_fileserver.insert_sequence(stoi(sequence), session);
 	if(request_message == "FS_SESSION"){
 		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
 		return_message = to_string(new_session_id) + " " + sequence;
@@ -245,9 +244,11 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 			close(connectionfd);
 			return -1;
 		}
-
+		goto finish;
 	}
-	else if(request_message == "FS_READBLOCK"){
+
+	main_fileserver.insert_sequence(stoi(sequence), session);
+	if(request_message == "FS_READBLOCK"){
 		cout_lock.lock();
         cout << "INSIDE FS_READBLOCK LINE 225" << endl;
 		cout_lock.unlock();
@@ -345,6 +346,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return -1;
 	}
 
+	finish:
 	//Close connection and return successfully
 	close(connectionfd);
 	return 0;

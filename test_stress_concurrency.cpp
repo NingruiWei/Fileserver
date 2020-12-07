@@ -16,10 +16,10 @@ const char *writedata3 = "Tommy Black (born Fredrik Halldin) is a record produce
 const char *writedata4 = "The 1902 Ibrox disaster was the collapse of a stand at Ibrox Park (now Ibrox Stadium) in Glasgow, Scotland, which led to the deaths of 25 and injuries to more than 500 supporters during an international association football match between Scotland and England on 5 April 1902. The stadium had completed construction three years before the incident and was hosting its first international fixture, with the crowd estimated to be over 68,000. The match was the first time that the ground had been used more than half full. During the first half of the match, a section of the newly built West Tribune Stand collapsed, dropping between 200 and 300 people to the concrete floor below. Two spectators were declared dead at the scene, and a further twenty-three died of injuries sustained in the incident soon after, the last victim dying three weeks later.";
 const char *writedata5 = "Frühschoppen (pronounced [fʁyːʃɔpm], meaning: an alcoholic drink before midday in company) is the German and Austrian tradition of meeting up at a pub, inn or tavern in the late morning, usually on Sundays. The specific customs vary from region to region. Frühschoppen is often a kind of brunch, but does not necessarily involve food. Frühschoppen is also often held at fun fairs, the most famous being Oktoberfest or Cannstatter Volksfest.";
 
-vector<string> user1_files;
-vector<string> user1_directories;
-vector<string> user2_files;
-vector<string> user2_directories;
+//vector<string> user1_files;
+//vector<string> user1_directories;
+//vector<string> user2_files;
+//vector<string> user2_directories;
 
 void thread1(int val){
     char readdata[FS_BLOCKSIZE];
@@ -30,44 +30,54 @@ void thread1(int val){
 
     for(int i = 0; i < 5; i++){
         string dir_name = "/t1dir" + to_string(i);
-        user1_directories.push_back(dir_name);
-        //fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
-        for(int j = 0; j < 10; j++){
-            string file_name = dir_name + "/file" + to_string(j);
-            user1_files.push_back(file_name);
-            //fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
-            for(int k = 0; k < 10; k++){
-                fs_readblock("user1", "password1", session, seq++, file_name.c_str(), k, readdata);
+        //user1_directories.push_back(dir_name);
+        fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        for(int j = 0; j < 5; j++){
+            dir_name += "/t2dir" + to_string(j);
+            fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            for(int k = 0; k < 5; k++){
+                dir_name += "/t3dir" + to_string(k);
+                fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
                 std::this_thread::sleep_for(std::chrono::seconds(1));
-                fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, writedata3);
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                //fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, writedata1);
-                //std::this_thread::sleep_for(std::chrono::seconds(1));
+                for(int l = 0; l < 5; l++){
+                    dir_name += "/t4file" + to_string(k);
+                    fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'f');
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    for(int m = 0; m < 3; l++){
+                        fs_writeblock("user1", "password1", session, seq++, dir_name.c_str(), m, writedata1);
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                }
             }
-            //fs_readblock("user2", "password2", session, seq++, user2_files.back().c_str(), 0, readdata);
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
 
-    for(int i = 0; i < 5; i++){
-        string dir_name = "/t2dir" + to_string(i);
-        user2_directories.push_back(dir_name);
-        //fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
-        for(int j = 0; j < 10; j++){
-            string file_name = dir_name + "/file" + to_string(j);
-            user2_files.push_back(file_name);
-            //fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
-            for(int k = 0; k < 10; k++){
-                fs_readblock("user1", "password1", session, seq++, file_name.c_str(), k, readdata);
+    for(int i = 0; i < 1; i++){
+        string dir_name = "/t1dir" + to_string(i);
+        //user1_directories.push_back(dir_name);
+        for(int j = 0; j < 2; j++){
+            dir_name += "/t2dir" + to_string(j);
+            for(int k = 0; k < 3; k++){
+                dir_name += "/t3dir" + to_string(k);
+                for(int l = 0; l < 4; l++){
+                    dir_name += "/t4file" + to_string(l);
+                    for(int m = 0; m < 2; l++){
+                        fs_readblock("user1", "password1", session, seq++, dir_name.c_str(), m, readdata);
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                    fs_delete("user1", "password1", session, seq++, dir_name.c_str());
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                }
+                fs_delete("user1", "password1", session, seq++, dir_name.c_str());
                 std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                //fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, writedata2);
-                //std::this_thread::sleep_for(std::chrono::seconds(1));
             }
-            //fs_readblock("user2", "password2", session, seq++, user1_files.back().c_str(), 0, readdata);
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            fs_delete("user1", "password1", session, seq++, dir_name.c_str());
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        fs_delete("user1", "password1", session, seq++, dir_name.c_str());
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     // fs_create("user1", "password1", session, seq++, "/user1_dir_lvl1", 'd');
@@ -93,46 +103,56 @@ void thread2(int val){
     fs_session("user1", "password1", &session, seq++);
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 1; i++){
         string dir_name = "/t1dir" + to_string(i);
-        user1_directories.push_back(dir_name);
-        //fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
-        for(int j = 0; j < 10; j++){
-            string file_name = dir_name + "/file" + to_string(j);
-            user1_files.push_back(file_name);
-            //fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
-            for(int k = 0; k < 10; k++){
-                fs_readblock("user1", "password1", session, seq++, file_name.c_str(), k, readdata);
+        //user1_directories.push_back(dir_name);
+        fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        for(int j = 0; j < 2; j++){
+            dir_name += "/t2dir" + to_string(j);
+            fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            for(int k = 0; k < 3; k++){
+                dir_name += "/t3dir" + to_string(k);
+                fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
                 std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                //fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, writedata1);
-                //std::this_thread::sleep_for(std::chrono::seconds(1));
+                for(int l = 0; l < 4; l++){
+                    dir_name += "/t4file" + to_string(l);
+                    fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'f');
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    for(int m = 0; m < 2; l++){
+                        fs_writeblock("user1", "password1", session, seq++, dir_name.c_str(), m, writedata1);
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                }
             }
-            //fs_readblock("user2", "password2", session, seq++, user2_files.back().c_str(), 0, readdata);
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
 
-    for(int i = 0; i < 5; i++){
-        string dir_name = "/t2dir" + to_string(i);
-        user2_directories.push_back(dir_name);
-        //fs_create("user1", "password1", session, seq++, dir_name.c_str(), 'd');
-        for(int j = 0; j < 10; j++){
-            string file_name = dir_name + "/file" + to_string(j);
-            user2_files.push_back(file_name);
-            //fs_create("user1", "password1", session, seq++, file_name.c_str(), 'f');
-            for(int k = 0; k < 10; k++){
-                fs_readblock("user1", "password1", session, seq++, file_name.c_str(), k, readdata);
+    for(int i = 0; i < 1; i++){
+        string dir_name = "/t1dir" + to_string(i);
+        //user1_directories.push_back(dir_name);
+        for(int j = 0; j < 2; j++){
+            dir_name += "/t2dir" + to_string(j);
+            for(int k = 0; k < 3; k++){
+                dir_name += "/t3dir" + to_string(k);
+                for(int l = 0; l < 4; l++){
+                    dir_name += "/t4file" + to_string(l);
+                    for(int m = 0; m < 2; l++){
+                        fs_readblock("user1", "password1", session, seq++, dir_name.c_str(), m, readdata);
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                    fs_delete("user1", "password1", session, seq++, dir_name.c_str());
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                }
+                fs_delete("user1", "password1", session, seq++, dir_name.c_str());
                 std::this_thread::sleep_for(std::chrono::seconds(1));
-                fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, writedata4);
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-
-                // fs_writeblock("user1", "password1", session, seq++, file_name.c_str(), k, writedata2);
-                // std::this_thread::sleep_for(std::chrono::seconds(1));
             }
-            //fs_readblock("user1", "password1", session, seq++, user1_files.back().c_str(), 0, readdata);
-            //std::this_thread::sleep_for(std::chrono::seconds(1));
+            fs_delete("user1", "password1", session, seq++, dir_name.c_str());
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        fs_delete("user1", "password1", session, seq++, dir_name.c_str());
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     // fs_create("user2", "password2", session, seq++, "/user2_dir_lvl1", 'd');
@@ -161,26 +181,26 @@ void thread3(int val){
     fs_session("user1", "password1", &other_session, other_seq++);
     std::this_thread::sleep_for(std::chrono::seconds(60));
 
-    while(!user1_directories.empty() || !user2_directories.empty()){
-        while(!user1_files.empty() || !user2_files.empty()){
-            if(user1_files.size() > user2_files.size()){
-                fs_delete("user1", "password1", session, seq++, user1_files.back().c_str());
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-            else{
-                fs_delete("user1", "password1", other_session, other_seq++, user2_files.back().c_str());
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
-            user1_files.pop_back();
-            user2_files.pop_back();
-        }
-        fs_delete("user1", "password1", session, seq++, user1_directories.back().c_str());
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        fs_delete("user1", "password1", other_session, other_seq++, user2_directories.back().c_str());
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        user1_directories.pop_back();
-        user2_directories.pop_back();
-    }
+    // while(!user1_directories.empty() || !user2_directories.empty()){
+    //     while(!user1_files.empty() || !user2_files.empty()){
+    //         if(user1_files.size() > user2_files.size()){
+    //             fs_delete("user1", "password1", session, seq++, user1_files.back().c_str());
+    //             std::this_thread::sleep_for(std::chrono::seconds(1));
+    //         }
+    //         else{
+    //             fs_delete("user1", "password1", other_session, other_seq++, user2_files.back().c_str());
+    //             std::this_thread::sleep_for(std::chrono::seconds(1));
+    //         }
+    //         user1_files.pop_back();
+    //         user2_files.pop_back();
+    //     }
+    //     fs_delete("user1", "password1", session, seq++, user1_directories.back().c_str());
+    //     std::this_thread::sleep_for(std::chrono::seconds(1));
+    //     fs_delete("user1", "password1", other_session, other_seq++, user2_directories.back().c_str());
+    //     std::this_thread::sleep_for(std::chrono::seconds(1));
+    //     user1_directories.pop_back();
+    //     user2_directories.pop_back();
+    // }
 
     // fs_create("user1", "password1", session, seq++, "/user1_dir_lvl1/user1_dir_lvl2", 'd');
     // std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -284,13 +304,13 @@ int main(int argc, char *argv[])
 
     thread t1(thread1, 0);
     thread t2(thread2, 0);
-    thread t3(thread3, 0);
+    //thread t3(thread3, 0);
     //thread t4(thread4, 0);
     //thread t5(thread5, 0);
 
     t1.join();
     t2.join();
-    t3.join();
+    //t3.join();
     //t4.join();
     //t5.join();
 
