@@ -16,65 +16,226 @@ request message is FS_SESSION
 main doing stuff
 START WHILE
 New connection 6
-FS_CREATE 0 1 /zeus f
-request message is FS_CREATE
+FS_READBLOCK 0 1 /zeus 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
 
 @@@ #5 disk_readblock: block 0
+/ path shared unlocked with 0 uses
 
-@@@ #6 disk_writeblock: block 4094
-
-@@@ #7 disk_writeblock: block 4095
-
-@@@ #8 disk_writeblock: block 0
-
-@@@ #9 send 6 3 33
-
-@@@ #10 send 6 33 NO_ENCRYPT[password1      ][0 1]
-
-@@@ #11 close 6
+@@@ #6 close 6
 main doing stuff
 START WHILE
 New connection 5
-FS_WRITEBLOCK 0 2 /zeus 0
-request message is FS_WRITEBLOCK
-DATA_LEN = 512
-HEADER_LEN = 25
-specified_size = 538
-We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+FS_CREATE 0 2 /zeus f
+request message is FS_CREATE
+/ path private locked with 1 uses
 
-@@@ #12 disk_readblock: block 0
+@@@ #7 disk_readblock: block 0
 
-@@@ #13 disk_readblock: block 4095
+@@@ #8 disk_writeblock: block 4094
 
-@@@ #14 disk_readblock: block 4094
+@@@ #9 disk_writeblock: block 4095
 
-@@@ #15 disk_writeblock: block 4093
+@@@ #10 disk_writeblock: block 0
+/ path private unlocked with 0 uses
 
-@@@ #16 disk_writeblock: block 4094
+@@@ #11 send 5 3 33
 
-@@@ #17 send 5 3 33
+@@@ #12 send 5 33 NO_ENCRYPT[password1      ][0 2]
 
-@@@ #18 send 5 33 NO_ENCRYPT[password1      ][0 2]
-
-@@@ #19 close 5
+@@@ #13 close 5
 main doing stuff
 START WHILE
 New connection 6
 FS_READBLOCK 0 3 /zeus 0
 request message is FS_READBLOCK
 INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
 
-@@@ #20 disk_readblock: block 0
+@@@ #14 disk_readblock: block 0
 
-@@@ #21 disk_readblock: block 4095
+@@@ #15 disk_readblock: block 4095
+/zeus path shared locked with 1 uses
 
-@@@ #22 disk_readblock: block 4094
+@@@ #16 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+/zeus path shared unlocked with 0 uses
 
-@@@ #23 disk_readblock: block 4093
+@@@ #17 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_WRITEBLOCK 0 4 /zeus 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 25
+specified_size = 538
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #18 disk_readblock: block 0
+
+@@@ #19 disk_readblock: block 4095
+/zeus path private locked with 1 uses
+
+@@@ #20 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #21 disk_writeblock: block 4093
+
+@@@ #22 disk_writeblock: block 4094
+/zeus path private unlocked with 0 uses
+
+@@@ #23 send 5 3 33
+
+@@@ #24 send 5 33 NO_ENCRYPT[password1      ][0 4]
+
+@@@ #25 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_READBLOCK 0 5 /zeus 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #26 disk_readblock: block 0
+
+@@@ #27 disk_readblock: block 4095
+/zeus path shared locked with 1 uses
+
+@@@ #28 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #29 disk_readblock: block 4093
+/zeus path shared unlocked with 0 uses
 DATA: We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
 
-@@@ #24 send 6 4 545
+@@@ #30 send 6 4 545
 
-@@@ #25 send 6 545 NO_ENCRYPT[password1      ][0 3We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying]
+@@@ #31 send 6 545 NO_ENCRYPT[password1      ][0 5We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying]
 
-@@@ #26 close 6
+@@@ #32 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_READBLOCK 0 6 /zeus 100000
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+
+@@@ #33 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_DELETE 0 7 /zeus
+request message is FS_DELETE
+/ path private locked with 1 uses
+
+@@@ #34 disk_readblock: block 0
+
+@@@ #35 disk_readblock: block 4095
+/zeus path private locked with 1 uses
+
+@@@ #36 disk_readblock: block 4094
+
+@@@ #37 disk_writeblock: block 0
+/zeus path private unlocked with 0 uses
+/ path private unlocked with 0 uses
+
+@@@ #38 send 6 3 33
+
+@@@ #39 send 6 33 NO_ENCRYPT[password1      ][0 7]
+
+@@@ #40 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_CREATE 0 8 /zeus f
+request message is FS_CREATE
+/ path private locked with 1 uses
+
+@@@ #41 disk_readblock: block 0
+
+@@@ #42 disk_writeblock: block 4094
+
+@@@ #43 disk_writeblock: block 4095
+
+@@@ #44 disk_writeblock: block 0
+/ path private unlocked with 0 uses
+
+@@@ #45 send 5 3 33
+
+@@@ #46 send 5 33 NO_ENCRYPT[password1      ][0 8]
+
+@@@ #47 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_WRITEBLOCK 0 9 /zeus 0
+request message is FS_WRITEBLOCK
+DATA_LEN = 512
+HEADER_LEN = 25
+specified_size = 538
+We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. -- That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, -- That whenever any Form of Government becomes destructive of these ends, it is the Right of the People to alter or to abolish it, and to institute new Government, laying
+/ path shared locked with 1 uses
+
+@@@ #48 disk_readblock: block 0
+
+@@@ #49 disk_readblock: block 4095
+/zeus path private locked with 1 uses
+
+@@@ #50 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+
+@@@ #51 disk_writeblock: block 4093
+
+@@@ #52 disk_writeblock: block 4094
+/zeus path private unlocked with 0 uses
+
+@@@ #53 send 6 3 33
+
+@@@ #54 send 6 33 NO_ENCRYPT[password1      ][0 9]
+
+@@@ #55 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_READBLOCK 0 10 zeus 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+
+@@@ #56 close 5
+main doing stuff
+START WHILE
+New connection 6
+FS_READBLOCK 0 11 /zeus1 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #57 disk_readblock: block 0
+
+@@@ #58 disk_readblock: block 4095
+/ path shared unlocked with 0 uses
+
+@@@ #59 close 6
+main doing stuff
+START WHILE
+New connection 5
+FS_READBLOCK 0 12 /zeus/poseidon 0
+request message is FS_READBLOCK
+INSIDE FS_READBLOCK LINE 225
+/ path shared locked with 1 uses
+
+@@@ #60 disk_readblock: block 0
+
+@@@ #61 disk_readblock: block 4095
+/zeus/ path shared locked with 1 uses
+
+@@@ #62 disk_readblock: block 4094
+/ path shared unlocked with 0 uses
+/zeus/ path shared unlocked with 0 uses
+
+@@@ #63 close 5
