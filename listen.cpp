@@ -219,6 +219,14 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return -1;
 	}
 
+	if(decrypted_msg[decrypted_len - 1] != '\0'){
+		cout_lock.lock();
+		cout << "Not a valid c string" << endl;
+		cout_lock.unlock();
+		close(connectionfd);
+		return -1;
+	}
+
 	string request_message, session, sequence, pathname, block_or_type;
 	stringstream ss2(decrypted_msg);
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
