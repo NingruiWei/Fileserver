@@ -247,8 +247,8 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		goto finish;
 	}
 
-	main_fileserver.insert_sequence(stoi(sequence), session);
 	if(request_message == "FS_READBLOCK"){
+		main_fileserver.insert_sequence(stoi(sequence), session);
 		cout_lock.lock();
         cout << "INSIDE FS_READBLOCK LINE 225" << endl;
 		cout_lock.unlock();
@@ -271,6 +271,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 
 	}
 	else if(request_message == "FS_WRITEBLOCK"){
+		main_fileserver.insert_sequence(stoi(sequence), session);
 		size_t specified_size = decrypted_len;
 		auto header_len = strnlen(decrypted_msg, specified_size); // must check if header size is valid later on
 		auto data_len = specified_size - header_len - 1;
@@ -302,7 +303,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_CREATE"){
-		
+		main_fileserver.insert_sequence(stoi(sequence), session);
 		if(main_fileserver.handle_fs_create(session, sequence, pathname, block_or_type) == -1){
 			close(connectionfd);
 			return -1;
@@ -321,6 +322,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_DELETE"){
+		main_fileserver.insert_sequence(stoi(sequence), session);
 		if(main_fileserver.handle_fs_delete(session, sequence, pathname) == -1){
 			close(connectionfd);
 			return -1;
