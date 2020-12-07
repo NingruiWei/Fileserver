@@ -381,6 +381,9 @@ void Fileserver::fill_password_map(){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
     std::string username, password;
     while(cin >> username >> password){
+        if (usernamel.size() > FS_MAXUSERNAME){
+            continue;
+        }
         if(password_map.find(username) == password_map.end()){
             password_map[username] = password;
         }
