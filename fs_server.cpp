@@ -432,7 +432,10 @@ int Fileserver::handle_fs_readblock(uint session, uint sequence, std::string pat
     vector<std::string> parsed_pathname; 
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
-    } 
+    }
+    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
+        return -1;
+    }
 
     path_lock parent_lock("/", true);
 
@@ -490,6 +493,9 @@ int Fileserver::handle_fs_writeblock(uint session, uint sequence, std::string pa
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
     } 
+    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
+        return -1;
+    }
     string remain = parsed_pathname.front();
 
     path_lock parent_lock("/", true);
@@ -570,6 +576,9 @@ int Fileserver::handle_fs_delete(uint session, uint sequence, std::string pathna
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
     }
+    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
+        return -1;
+    }
 
     path_lock parent_lock("/", parsed_pathname.size() > 1), to_delete_lock;
 
@@ -643,7 +652,6 @@ int Fileserver::handle_fs_delete(uint session, uint sequence, std::string pathna
 
    end:
    return 0;
-
 }
 
 int Fileserver::handle_fs_create(uint session, uint sequence, std::string pathname, std::string type){
