@@ -152,6 +152,9 @@ int split_string_spaces(vector<std::string> &result, std::string str){
             if(temp.size() == 0){
                 return -1;
             }
+            if(temp.size() > FS_MAXFILENAME){
+                return -1;
+            }
             result.push_back(temp);
             temp.clear();
         }
@@ -433,9 +436,6 @@ int Fileserver::handle_fs_readblock(uint session, uint sequence, std::string pat
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
     }
-    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
-        return -1;
-    }
 
     path_lock parent_lock("/", true);
 
@@ -493,9 +493,6 @@ int Fileserver::handle_fs_writeblock(uint session, uint sequence, std::string pa
     if (split_string_spaces(parsed_pathname, pathname) == -1){
         return -1;
     } 
-    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
-        return -1;
-    }
     string remain = parsed_pathname.front();
 
     path_lock parent_lock("/", true);
@@ -574,9 +571,6 @@ int Fileserver::handle_fs_delete(uint session, uint sequence, std::string pathna
     }
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     if (split_string_spaces(parsed_pathname, pathname) == -1){
-        return -1;
-    }
-    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
         return -1;
     }
 
@@ -669,9 +663,6 @@ int Fileserver::handle_fs_create(uint session, uint sequence, std::string pathna
     available_blocks_mutex.unlock();
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
     if (split_string_spaces(parsed_pathname, pathname) == -1){
-        return -1;
-    }
-    if(parsed_pathname.front().size() > FS_MAXFILENAME){ //If the file/directory name you want to create is too long, just ignore it
         return -1;
     }
     
