@@ -14,11 +14,7 @@ fs: ${FS_OBJS} libfs_server.o
 	${CC} -o $@ $^ -pthread -ldl
 
 # Compile a client program
-<<<<<<< HEAD
 app: test_spec.cpp libfs_client.o
-=======
-app: test_depression.cpp libfs_client.o
->>>>>>> 2f1ca3ca964fd92df24701fbb53b0737459a067d
 	${CC} -o $@ $^
 
 # Generic rules for compiling a source file to an object file

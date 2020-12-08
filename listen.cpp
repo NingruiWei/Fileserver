@@ -18,14 +18,15 @@ using namespace std;
 Fileserver main_fileserver;
 mutex seq_lock;
 extern mutex cout_lock;
-int sequence_num = 0;
+uint sequence_num = 0;
 
 
 bool check_fs(string original){
 	// We must check if sequence number is larger than previous sequence number. The first instance of sequence number is set 
 	// during FS_SESSION call
 
-	string name, session, sequence, block, reappended, data, pathname, type;
+	string name, block, reappended, data, pathname, type;
+	uint session, sequence;
 	stringstream ss(original);
 	ss >> name >> session >> sequence;
 
@@ -33,14 +34,14 @@ bool check_fs(string original){
 	// cout << "decrypted message " << name << " " << session << " " << sequence << endl;
 	// cout_lock.unlock();
 
-	if(name != "FS_SESSION" && stoi(session) > main_fileserver.valid_session_range()){
+	if(name != "FS_SESSION" && session > (unsigned)main_fileserver.valid_session_range()){
 		cout_lock.lock();
 		cout << "Session number is invalid" << endl;
 		cout_lock.unlock();
 		return false;
 	}
 
-	if (name != "FS_SESSION" && stoi(sequence) <= main_fileserver.query_session_map_sequence(stoi(session))) {
+	if (name != "FS_SESSION" && sequence <= (unsigned)main_fileserver.query_session_map_sequence(session)) {
 		cout_lock.lock();
 		cout << "Sequence number is invalid" << endl;
 		cout_lock.unlock();
@@ -48,23 +49,23 @@ bool check_fs(string original){
 	}
 
 	if (name == "FS_SESSION") {
-		reappended = name + ' ' + session + ' ' + sequence;
+		reappended = name + ' ' + to_string(session) + ' ' + to_string(sequence);
 	}
 	else if (name == "FS_READBLOCK") {
 		ss >> pathname >> block;
-		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + block;
+		reappended = name + ' ' + to_string(session) + ' ' + to_string(sequence) + ' ' + pathname + ' ' + block;
 	}
 	else if (name == "FS_WRITEBLOCK") {
 		ss >> pathname >> block;
-		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + block;
+		reappended = name + ' ' + to_string(session) + ' ' + to_string(sequence) + ' ' + pathname + ' ' + block;
 	}
 	else if (name == "FS_CREATE") {
 		ss >> pathname >> type;
-		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname + ' ' + type;
+		reappended = name + ' ' + to_string(session) + ' ' + to_string(sequence) + ' ' + pathname + ' ' + type;
 	}
 	else if (name == "FS_DELETE") {
 		ss >> pathname;
-		reappended = name + ' ' + session + ' ' + sequence + ' ' + pathname;
+		reappended = name + ' ' + to_string(session) + ' ' + to_string(sequence) + ' ' + pathname;
 	}
 
 	return original == reappended;
@@ -219,15 +220,16 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		return -1;
 	}
 
-	if(decrypted_msg[decrypted_len - 1] != '\0'){
-		cout_lock.lock();
-		cout << "Not a valid c string" << endl;
-		cout_lock.unlock();
-		close(connectionfd);
-		return -1;
-	}
+	// if(decrypted_msg[decrypted_len - 1 ] != '\0'){
+	// 	cout_lock.lock();
+	// 	cout << "Not a valid c string" << endl;
+	// 	cout_lock.unlock();
+	// 	close(connectionfd);
+	// 	return -1;
+	// }
 
-	string request_message, session, sequence, pathname, block_or_type;
+	string request_message, pathname, block_or_type;
+	uint session, sequence;
 	stringstream ss2(decrypted_msg);
 	ss2 >> request_message >> session >> sequence >> pathname >> block_or_type;
 	
@@ -237,14 +239,14 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	cout << "request message is " << request_message << endl;
 	cout_lock.unlock();
 	
-	if(request_message != "FS_SESSION" && (main_fileserver.query_session_map_username(stoi(session)) != username)){
+	if(request_message != "FS_SESSION" && (main_fileserver.query_session_map_username(session) != username)){
 		close(connectionfd);
 		return -1;
 	}
 	
 	if(request_message == "FS_SESSION"){
-		unsigned int new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
-		return_message = to_string(new_session_id) + " " + sequence;
+		uint new_session_id = main_fileserver.handle_fs_session(session, sequence, username);
+		return_message = to_string(new_session_id) + " " + to_string(sequence);
 		int fail_check = 0;
 		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
 
@@ -256,7 +258,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 	}
 
 	if(request_message == "FS_READBLOCK"){
-		main_fileserver.insert_sequence(stoi(sequence), session);
+		main_fileserver.insert_sequence(sequence, session);
 		cout_lock.lock();
         cout << "INSIDE FS_READBLOCK LINE 225" << endl;
 		cout_lock.unlock();
@@ -266,7 +268,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 			return -1;
 		}
 		string data_string = string(read_data, 512);
-		return_message = session + ' ' + sequence;
+		return_message = to_string(session) + ' ' + to_string(sequence);
 		int fail_check = 0;
 		encrypt_return_message(return_message, &fail_check, username, true, connectionfd, data_string);
 
@@ -279,7 +281,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 
 	}
 	else if(request_message == "FS_WRITEBLOCK"){
-		main_fileserver.insert_sequence(stoi(sequence), session);
+		main_fileserver.insert_sequence(sequence, session);
 		size_t specified_size = decrypted_len;
 		auto header_len = strnlen(decrypted_msg, specified_size); // must check if header size is valid later on
 		auto data_len = specified_size - header_len - 1;
@@ -298,7 +300,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 			close(connectionfd);
 			return -1;
 		}
-		return_message = session + ' ' + sequence;
+		return_message = to_string(session) + ' ' + to_string(sequence);
 
 		int fail_check = 0;
 		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
@@ -311,13 +313,13 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_CREATE"){
-		main_fileserver.insert_sequence(stoi(sequence), session);
+		main_fileserver.insert_sequence(sequence, session);
 		if(main_fileserver.handle_fs_create(session, sequence, pathname, block_or_type) == -1){
 			close(connectionfd);
 			return -1;
 		};
 
-		return_message = session + ' ' + sequence;
+		return_message = to_string(session) + ' ' + to_string(sequence);
 
 		int fail_check = 0;
 		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");
@@ -330,13 +332,13 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		//send(connectionfd, appender.c_str(), appender.size(), 0);
 	}
 	else if(request_message == "FS_DELETE"){
-		main_fileserver.insert_sequence(stoi(sequence), session);
+		main_fileserver.insert_sequence(sequence, session);
 		if(main_fileserver.handle_fs_delete(session, sequence, pathname) == -1){
 			close(connectionfd);
 			return -1;
 		}
 
-		return_message = session + ' ' + sequence;
+		return_message = to_string(session) + ' ' + to_string(sequence);
 
 		int fail_check = 0;
 		encrypt_return_message(return_message, &fail_check, username, 0, connectionfd, "");

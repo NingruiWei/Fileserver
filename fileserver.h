@@ -18,7 +18,7 @@ using namespace std;
 
 
 struct session_map_entry{
-    size_t sequence_num;
+    uint sequence_num;
     std::string username;
 };
 
@@ -70,24 +70,24 @@ struct path_lock{
 class Fileserver{
     private:
         vector<session_map_entry> session_map;
-        unordered_set<size_t> available_blocks;
+        unordered_set<uint> available_blocks;
         unordered_map<std::string, std::string> password_map;
         
     public:
         Fileserver();
         ~Fileserver();
         bool check_avaiable_blocks_size(unsigned int reserve_size);
-        int handle_fs_session(std::string session, std::string sequence, std::string username);
-        int handle_fs_readblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* readdata);
-        int handle_fs_writeblock(std::string session, std::string sequence, std::string pathname, std::string block_or_type, char* data);
-        int handle_fs_create(std::string session, std::string sequence, std::string pathname, std::string type);
-        int handle_fs_delete(std::string session, std::string sequence, std::string pathname);
+        int handle_fs_session(uint session, uint sequence, std::string username);
+        int handle_fs_readblock(uint session, uint sequence, std::string pathname, std::string block_or_type, char* readdata);
+        int handle_fs_writeblock(uint session, uint sequence, std::string pathname, std::string block_or_type, char* data);
+        int handle_fs_create(uint session, uint sequence, std::string pathname, std::string type);
+        int handle_fs_delete(uint session, uint sequence, std::string pathname);
         void fill_password_map();
         bool username_in_map(std::string query);
         std::string query_map(std::string query);
-        void insert_sequence(int sequence, string session);
-        int query_session_map_sequence(int session);
-        string query_session_map_username(int session);
+        void insert_sequence(uint session, uint sequence);
+        int query_session_map_sequence(uint session);
+        string query_session_map_username(uint session);
         int valid_session_range();
         fs_inode get_curr_inode();
         void init_fs();
