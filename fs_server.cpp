@@ -752,7 +752,7 @@ string Fileserver::query_map(std::string query){
     return password_map[query];
 }
 
-int Fileserver::query_session_map_sequence(uint session){
+uint Fileserver::query_session_map_sequence(uint session){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
     return session_map[session].sequence_num;
 }
@@ -767,9 +767,14 @@ string Fileserver::query_session_map_username(uint session){
     return session_map[session].username;
 }
 
-int Fileserver::valid_session_range(){
+uint Fileserver::valid_session_range(){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
-    return session_map.size() - 1;
+    if(session_map.size() == 0){
+        return 0;
+    }
+    else{
+        return session_map.size() - 1;
+    }
 }
 
 void Fileserver::init_fs() {

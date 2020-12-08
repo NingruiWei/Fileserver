@@ -26,7 +26,7 @@ bool check_fs(string original){
 	// during FS_SESSION call
 
 	string name, block, reappended, data, pathname, type;
-	uint session, sequence;
+	uint session = 0, sequence = 0;
 	stringstream ss(original);
 	ss >> name >> session >> sequence;
 
@@ -34,14 +34,14 @@ bool check_fs(string original){
 	// cout << "decrypted message " << name << " " << session << " " << sequence << endl;
 	// cout_lock.unlock();
 
-	if(name != "FS_SESSION" && session > (unsigned)main_fileserver.valid_session_range()){
+	if(name != "FS_SESSION" && session > main_fileserver.valid_session_range()){
 		cout_lock.lock();
 		cout << "Session number is invalid" << endl;
 		cout_lock.unlock();
 		return false;
 	}
 
-	if (name != "FS_SESSION" && sequence <= (unsigned)main_fileserver.query_session_map_sequence(session)) {
+	if (name != "FS_SESSION" && sequence <= main_fileserver.query_session_map_sequence(session)) {
 		cout_lock.lock();
 		cout << "Sequence number is invalid" << endl;
 		cout_lock.unlock();
