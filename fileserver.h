@@ -45,6 +45,10 @@ struct path_lock{
         lock_on_disk(pathname, shared_lock);
     }
 
+    void manual_unlock(){
+        unlock_on_disk(pathname, shared_lock);
+    }
+
     //RAII unlock
     ~path_lock(){
         unlock_on_disk(pathname, shared_lock);
