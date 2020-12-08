@@ -202,10 +202,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
         return -1;
         
         loop:
-        travelled_path += parsed_pathname.back();
-        if(parsed_pathname.size() > 1){
-            travelled_path += "/";
-        }
+        travelled_path += parsed_pathname.back() + "/";
         shared_status = (parsed_pathname.size() > 2); //The file you're deleting and its parent directory both should be private locked
         path_lock child_lock(travelled_path, shared_status);
         return_parent_lock.swap_lock(&child_lock);
@@ -284,10 +281,7 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         return -1;
         
         loop:
-        travelled_path += parsed_pathname.back();
-        if(parsed_pathname.size() > 1){
-            travelled_path += "/";
-        }
+        travelled_path += parsed_pathname.back() + "/";
         shared_status = (parsed_pathname.size() > 2); //You only need to private lock the parent directory of where you're creating your file
         path_lock child_lock(travelled_path, shared_status);
         return_parent_lock.swap_lock(&child_lock);
@@ -364,10 +358,7 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         return -1;
         
         loop:
-        travelled_path += parsed_pathname.back();
-        if(parsed_pathname.size() > 1){
-            travelled_path += "/";
-        }
+        travelled_path += parsed_pathname.back() + "/";
         shared_status = (parsed_pathname.size() > 1 || fs_read); //We only privately lock the thing we're interested in writing to, reading is always a shared lock
         path_lock child_lock(travelled_path, shared_status);
         return_parent_lock.swap_lock(&child_lock);
