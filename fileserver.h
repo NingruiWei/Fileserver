@@ -47,6 +47,8 @@ struct path_lock{
 
     void manual_unlock(){
         unlock_on_disk(pathname, shared_lock);
+        pathname = "dummy_pathname";
+        shared_lock = false;
     }
 
     //RAII unlock
