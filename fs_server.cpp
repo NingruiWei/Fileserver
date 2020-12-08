@@ -757,7 +757,7 @@ string Fileserver::query_map(std::string query){
 
 bool Fileserver::query_session_map_sequence(uint session, uint sequence){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
-    return sequence > session_map[session].sequence_num;
+    return sequence <= session_map[session].sequence_num;
 }
 
 void Fileserver::insert_sequence(uint sequence, uint session){
