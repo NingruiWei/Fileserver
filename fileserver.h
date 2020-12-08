@@ -70,25 +70,25 @@ struct path_lock{
 class Fileserver{
     private:
         vector<session_map_entry> session_map;
-        unordered_set<uint> available_blocks;
+        unordered_set<size_t> available_blocks;
         unordered_map<std::string, std::string> password_map;
         
     public:
         Fileserver();
         ~Fileserver();
-        bool check_avaiable_blocks_size(unsigned int reserve_size);
-        int handle_fs_session(uint session, uint sequence, std::string username);
-        int handle_fs_readblock(uint session, uint sequence, std::string pathname, std::string block_or_type, char* readdata);
-        int handle_fs_writeblock(uint session, uint sequence, std::string pathname, std::string block_or_type, char* data);
-        int handle_fs_create(uint session, uint sequence, std::string pathname, std::string type);
-        int handle_fs_delete(uint session, uint sequence, std::string pathname);
+        bool blocks_full();
+        int handle_fs_session(uint sequence, uint session, std::string username);
+        int handle_fs_readblock(uint sequence, uint session, std::string pathname, std::string block_or_type, char* readdata);
+        int handle_fs_writeblock(uint sequence, uint session, std::string pathname, std::string block_or_type, char* data);
+        int handle_fs_create(uint sequence, uint session, std::string pathname, std::string type);
+        int handle_fs_delete(uint sequence, uint session, std::string pathname);
         void fill_password_map();
         bool username_in_map(std::string query);
         std::string query_map(std::string query);
-        void insert_sequence(uint session, uint sequence);
-        uint query_session_map_sequence(uint session);
+        void insert_sequence(uint sequence, uint session);
+        bool query_session_map_sequence(uint session, uint sequence);
         string query_session_map_username(uint session);
-        uint valid_session_range();
+        bool valid_session_range(uint session);
         fs_inode get_curr_inode();
         void init_fs();
         void read_directory(fs_direntry *entries, fs_inode *dir_inode, size_t i);

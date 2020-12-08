@@ -25,7 +25,7 @@ Fileserver::Fileserver(){}
 Fileserver::~Fileserver(){}
 
 void deepcopy(fs_direntry* new_one, fs_direntry* original){
-    for(uint i = 0; i < FS_DIRENTRIES; ++i){
+    for(size_t i = 0; i < FS_DIRENTRIES; ++i){
         strcpy(new_one[i].name, original[i].name);
         new_one[i].inode_block = original[i].inode_block;
     }
@@ -80,13 +80,21 @@ void unlock_on_disk(std::string path, bool shared_lock){
     }
 }
 
-bool Fileserver::check_avaiable_blocks_size(uint reserve_size){
-    return available_blocks.size() >= reserve_size;
+bool direntry_full(fs_inode* curr){ // passed in should the inode in question
+    for(size_t i = 0; i < curr->size; ++i){
+
+    }
+    return true; // no room found so it is full
+}
+
+bool Fileserver::blocks_full(){
+    return available_blocks.empty();
 }
 
 // adds block to inode passed in and returns the block number. If returns -1, then we dont have space either in the inode or we ran out of blocks.
 int Fileserver::add_block_to_inode(fs_inode* curr){
-    if(curr->size == FS_MAXFILEBLOCKS) { // reached max space in inode already, we assume that they will have already determined that they have enough blocks to do what they need to do
+    lock_guard<mutex> fs_lock(available_blocks_mutex);
+    if(curr->size == FS_MAXFILEBLOCKS || blocks_full()) { // reached max space in inode already or ran out of blocks in memory
         return -1;
     }
 
@@ -206,6 +214,10 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
         ++loop;
     }
 
+    if(parsed_pathname.back().size() > FS_MAXFILENAME){
+        return -1;
+    }
+
     parent_inode->type = curr_inode->type;
     strcpy(parent_inode->owner, curr_inode->owner);
     parent_inode->size = curr_inode->size;
@@ -257,7 +269,6 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         
         for(size_t i = 0; i < curr_inode->size; i++){
             disk_readblock(curr_inode->blocks[i], curr_entries); //Read in the current blocks direntries
-            
             for(size_t j = 0; j < FS_DIRENTRIES; j++){
                 if( curr_entries[j].inode_block != 0 && strcmp(curr_entries[j].name, parsed_pathname.back().c_str()) == 0){
                     parent_inode_block = curr_entries[j].inode_block;
@@ -283,10 +294,12 @@ int Fileserver::traverse_pathname_create(vector<std::string> &parsed_pathname, f
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         ++loop;
     }
+    
     if(curr_inode->type == 'f'){
-            //File should only ever be the last thing along the path, if it's not it should be an error. Double check this assumption
-            return -1;
-            }
+        //You should only be able to create files or directories within directories, not within files
+        return -1;
+    }
+
     // once we have found the inode we are inserting in we see if there's already space or not in the thing
     bool found = false;
     for(size_t i = 0; i < curr_inode->size; i++){
@@ -360,9 +373,10 @@ int Fileserver::traverse_pathname(vector<std::string> &parsed_pathname, fs_inode
         parsed_pathname.pop_back(); //Remove the first element of the vector so that we look for the next directory we're concerned with
         ++loop;
     }
-
+    
     // cout_lock.lock();
     // cout << "Parent lock: " << return_parent_lock.pathname << endl;
+    // cout << "Child lock: " << return_child_lock.pathname << endl;
     // cout_lock.unlock();
 
     return 0;
@@ -374,7 +388,7 @@ void Fileserver::fill_password_map(){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
     std::string username, password;
     while(cin >> username >> password){
-        if (username.size() > FS_MAXUSERNAME){
+        if(username.size() > FS_MAXUSERNAME){
             continue;
         }
         if(password_map.find(username) == password_map.end()){
@@ -402,10 +416,10 @@ int Fileserver::handle_fs_session(uint session, uint sequence, std::string usern
 }
 
 int Fileserver::handle_fs_readblock(uint session, uint sequence, std::string pathname, std::string block_or_type, char* return_arr){
-     if (pathname == "/"){
+    if (pathname == "/"){
         return -1;
     }
-    if (pathname.size() > FS_MAXFILENAME){
+    if(pathname.size() > FS_MAXPATHNAME){
         return -1;
     }
     int block = stoi(block_or_type);
@@ -462,7 +476,7 @@ int Fileserver::handle_fs_writeblock(uint session, uint sequence, std::string pa
      if (pathname == "/"){
         return -1;
     }
-    if (pathname.size() > FS_MAXFILENAME){
+    if(pathname.size() > FS_MAXPATHNAME){
         return -1;
     }
     int block = stoi(block_or_type);
@@ -517,17 +531,10 @@ int Fileserver::handle_fs_writeblock(uint session, uint sequence, std::string pa
     int write_to_block;
     if( (size_t) block > curr_inode.size){return -1;}
     else if((size_t)block == curr_inode.size){
-        available_blocks_mutex.lock();
-        if(!check_avaiable_blocks_size(1)){
-            available_blocks_mutex.unlock();
-            return -1;
-        }
         int check = add_block_to_inode(&curr_inode);
         if(check == -1){
-            available_blocks_mutex.unlock();
             return -1;
         }
-        available_blocks_mutex.unlock();
         write_to_block = check;
         disk_writeblock(write_to_block, data);
         disk_writeblock(parent_inode_block, &curr_inode);
@@ -553,7 +560,7 @@ int Fileserver::handle_fs_delete(uint session, uint sequence, std::string pathna
     if (pathname == "/"){
         return -1;
     }
-    if (pathname.size() > FS_MAXFILENAME){
+    if(pathname.size() > FS_MAXPATHNAME){
         return -1;
     }
     vector<std::string> parsed_pathname; //parse filename on "/" so that we have each individual directory/filename
@@ -637,14 +644,14 @@ int Fileserver::handle_fs_delete(uint session, uint sequence, std::string pathna
 }
 
 int Fileserver::handle_fs_create(uint session, uint sequence, std::string pathname, std::string type){
-     if (pathname == "/"){
+    if (pathname == "/"){
         return -1;
     }
-    if (pathname.size() > FS_MAXFILENAME){
+    if(pathname.size() > FS_MAXPATHNAME){
         return -1;
     }
     available_blocks_mutex.lock();
-    if(!check_avaiable_blocks_size(1)){ //Make sure there's at least 1 block for a create (may need as many as 2, but assume we only need 1 to begin carrying out our action)
+    if(blocks_full()){
         available_blocks_mutex.unlock();
         return -1;
     }
@@ -691,14 +698,12 @@ int Fileserver::handle_fs_create(uint session, uint sequence, std::string pathna
     }
     // if no room currently to add new direntry
 
-    available_blocks_mutex.lock();
+    if(parsed_pathname.back().size() > FS_MAXFILENAME){
+        return -1;
+    }
 
     bool curr_entries_full = false;
     if(parent_entries_block == 0){
-        if(!check_avaiable_blocks_size(2)){
-            available_blocks_mutex.unlock();
-            return -1;
-        }
         parent_entries_block = add_block_to_inode(&curr_inode);
         if (parent_entries_block == -1){
             return -1;
@@ -708,16 +713,14 @@ int Fileserver::handle_fs_create(uint session, uint sequence, std::string pathna
             }
         curr_entries_full = true;
     }
-    else if(!check_avaiable_blocks_size(1)){
+    available_blocks_mutex.lock();
+    if(blocks_full()){
         available_blocks_mutex.unlock();
         return -1;
     }
     
 
     //Create new inode and direntry for the file/directory we're creating
-    if (username.size() > FS_MAXUSERNAME) {
-        return -1;
-    }
     fs_inode temp = create_inode(type, username);
     fs_direntry temp_entry;
     temp_entry.inode_block = *available_blocks.begin();
@@ -752,9 +755,9 @@ string Fileserver::query_map(std::string query){
     return password_map[query];
 }
 
-uint Fileserver::query_session_map_sequence(uint session){
+bool Fileserver::query_session_map_sequence(uint session, uint sequence){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
-    return session_map[session].sequence_num;
+    return sequence > session_map[session].sequence_num;
 }
 
 void Fileserver::insert_sequence(uint sequence, uint session){
@@ -767,30 +770,28 @@ string Fileserver::query_session_map_username(uint session){
     return session_map[session].username;
 }
 
-uint Fileserver::valid_session_range(){
+bool Fileserver::valid_session_range(uint session){
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
-    if(session_map.size() == 0){
-        return 0;
+    if(session_map.empty()){
+        return true;
     }
-    else{
-        return session_map.size() - 1;
-    }
+    return session > session_map.size() - 1;
 }
 
 void Fileserver::init_fs() {
     //available_blocks.resize(FS_MAXFILEBLOCKS);
     lock_guard<mutex> fs_lock(available_blocks_mutex);
-    for(uint i = 1; i < FS_DISKSIZE; ++i){
+    for(size_t i = 1; i < FS_DISKSIZE; ++i){
         available_blocks.insert(i);
     }
     fs_inode curr_inode;
     fs_direntry curr_entries[FS_DIRENTRIES];
     size_t curr_ind;
-    queue <size_t> tmp_q;
-    tmp_q.push(0);
-    while(!tmp_q.empty()){
-        curr_ind = tmp_q.front();
-        tmp_q.pop();
+    queue <size_t> matt;
+    matt.push(0);
+    while(!matt.empty()){
+        curr_ind = matt.front();
+        matt.pop();
         disk_readblock(curr_ind, &curr_inode);
         for (size_t i = 0; i < curr_inode.size; ++i){
             available_blocks.erase(available_blocks.find(curr_inode.blocks[i]));
@@ -798,7 +799,7 @@ void Fileserver::init_fs() {
                 disk_readblock(curr_inode.blocks[i], curr_entries);
                 for(size_t j = 0; j < FS_DIRENTRIES; ++j){
                     if(curr_entries[j].inode_block != 0){
-                        tmp_q.push(curr_entries[j].inode_block);
+                        matt.push(curr_entries[j].inode_block);
                         available_blocks.erase(available_blocks.find(curr_entries[j].inode_block));
                     }
                 }
@@ -816,12 +817,3 @@ void Fileserver::read_directory(fs_direntry *entries, fs_inode *dir_inode, size_
     lock_guard<mutex> fs_lock(fileserver_shared_lock);
     disk_readblock(dir_inode->blocks[i], &entries);
 }
-
-
-
-
-
-
-
-
-
