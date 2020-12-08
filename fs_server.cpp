@@ -241,7 +241,7 @@ int Fileserver::traverse_pathname_delete(vector<std::string> &parsed_pathname, f
     return -1; // didn't find a matching filename to delete;
    
     end:
-    travelled_path += parsed_pathname.back();
+    travelled_path += parsed_pathname.back() + "/";
     return_to_delete_lock.new_lock(travelled_path, false);
     // cout_lock.lock();
     // cout << "Parent lock: " << return_parent_lock.pathname << endl;
