@@ -462,7 +462,7 @@ int Fileserver::handle_fs_readblock(uint session, uint sequence, std::string pat
     }
     //Upon success, pathname should return parsed_pathname with a single entry which is the file/directory we're interested in
     //Curr_inode should point to the directory inode which holds the inode we're interested in and curr_entires is the direntries associated with that inode
-    
+    if (curr_inode.type == 'd'){return -1;}
     if((size_t) block >= curr_inode.size){ return -1;}
     int read_block = curr_inode.blocks[block];
     disk_readblock(read_block, return_arr);
@@ -613,10 +613,10 @@ int Fileserver::handle_fs_delete(uint session, uint sequence, std::string pathna
     else if(curr_inode.size > 0){
         return -1;
     }
+    curr_entries[parent_entries_index].inode_block = 0; // this should clear it
     available_blocks.insert(curr_inode_block);
     // after this we have freed up the blocks at the very end eg. paul/klee, the klee block would be freed up now
 
-    curr_entries[parent_entries_index].inode_block = 0; // this should clear it
     if(no_entries(curr_entries)){ // if curr_entries is empty we then free up the whole block it's in since it's useless now
         available_blocks.insert(parent_entries);
         //disk_readblock(parent_inode_block, )
@@ -696,6 +696,9 @@ int Fileserver::handle_fs_create(uint session, uint sequence, std::string pathna
 
     bool curr_entries_full = false;
     if(parent_entries_block == 0){
+        if (curr_inode.size == FS_MAXFILEBLOCKS){ // just added 12/8 to make sure we can't add another entries page if over
+            return -1;
+        }
         parent_entries_block = add_block_to_inode(&curr_inode);
         if (parent_entries_block == -1){
             return -1;
