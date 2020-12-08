@@ -193,7 +193,7 @@ int decrypt_message(char *decrypted_msg, string &encrypted, string &username, in
 		close(connectionfd);
 		return -1;
 	}
-	if(!main_fileserver.username_in_map(username)){
+	if(!main_fileserver.username_in_map(username) || username.size() > FS_MAXUSERNAME){
 		cout_lock.lock();
 		cout << "Invalid username" << endl;
 		cout_lock.unlock();
